@@ -13,7 +13,7 @@ docker build -t bookstore .
 
 start cmd /k docker run -it -p 8000-8002:8000-8002 bookstore 
 
-timeout 5
+timeout 10
 
 @ECHO ON
 curl -L "http://127.0.0.1:8000/lookup?item_number=1"

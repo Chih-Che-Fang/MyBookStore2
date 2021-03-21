@@ -96,7 +96,9 @@ def get_init_state(file_name):
     file = open(file_name, 'r')
     for line in file.readlines():
         tokens = line.strip().split(',')
+
         if tokens[0] == 'init':
+            print(tokens[1])
             books[tokens[1]] = Book(tokens[1], int(tokens[2]), tokens[3], tokens[4], tokens[5])
         
     
