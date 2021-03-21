@@ -26,7 +26,7 @@ def buy():
     return res.json()
 
 def log_transaction(msg):
-    f = open('order_log', 'a')
+    f = open('./output/order_log', 'a')
     f.write(msg)
     f.write('\n')
     f.close()

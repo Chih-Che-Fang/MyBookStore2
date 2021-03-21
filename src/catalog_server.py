@@ -87,7 +87,7 @@ def update():
 
 
 def log_transaction(msg):
-    f = open('catalog_log', 'a')
+    f = open('./output/catalog_log', 'a')
     f.write(msg)
     f.write('\n')
     f.close()
@@ -102,5 +102,5 @@ def get_init_state(file_name):
     
 #start the inferece server
 if __name__ == '__main__':
-    get_init_state('catalog_log')
+    get_init_state('./output/catalog_log')
     app.run(host='0.0.0.0', port=8001, threaded=True)
