@@ -8,7 +8,7 @@
 **[Intermediate Milestone]**  
 test1: Perform lookup and search methods correctly.  
 test2: Buy operations run and update the stock of the item correctly  
-test3: (Race Condition) 3 clients buy book "RPCs for Dummies" that only has 2 stock concurrently, only 2 client can buy the book
+test3: (Race Condition) 3 clients buy book "RPCs for Dummies" that only has 2 stock concurrently, only 2 client can buy the book  
 **[Final Milestone]**  
 test4: Run above test cases, but deploy system on three machines, with each of the three components on a different machine  
 
