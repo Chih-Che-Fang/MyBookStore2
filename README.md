@@ -1,35 +1,30 @@
 
-# MyBazaar
+# MyBookStore
 # Group Members: 
 # Name: Chih-Che Fang, SPIRE ID: 32144321, Email: chihchefang@umass.edu;
 
-**Enviornment:**  Windows + Python3.7 + Docker  + AWS Cli2.0 installed + AWS cli configured with your own AWS account **(Please make sure you're able to access your AWS account by AWS CLI)**  
+**Enviornment:**  Windows + Docker  + AWS Cli2.0 installed + AWS cli configured with your own AWS account **(Please make sure you're able to access your AWS account by AWS CLI)**  
 **Applications:**   
 **[Intermediate Milestone]**  
-Perform lookup and search methods correctly.
-Buy operations run and update the stock of the item correctly
+Perform lookup and search methods correctly.  
+Buy operations run and update the stock of the item correctly  
+**[Final Milestone]**  
+Run above test cases, but deploy system on three machines, with each of the three components on a different machine  
 
 # How to run?  
 
-1. Switch to the root directory of this project (Ex. cd /MyBazaar) and confirm the path contains no "blank"  
+1. Switch to the root directory of this project (Ex. cd /MyBookStore) and confirm the path contains no "blank"  
 
-2. **[Test on Single Local Server]** Perform **run_local_test.bat** on Windows OS (With JDK installed and with JDK environment variable set), and will automatically launch multiple peers and construct the topology, finally run the peer-to-peer system  
-**[Test on Multiple Remote Servers(EC2)]** Perform **run_distributed_test.bat** on Windows OS (With JDK installed, JDK environment variable set, AWS Cli set and configured, must have access to your own AWS account), and will automatically careat security group, key pair, and multiple EC2 instances, then migrate the code to remote server and complie it, finally run the peer-to-peer system for test1 to test4
+2. **[Test on Single Local Server]** Perform **run_local_test.bat** on Windows OS (With Docker installed), and will automatically launch multiple peers and construct the topology, finally run the peer-to-peer system  
+**[Test on Multiple Remote Servers(EC2)]** Perform **run_distributed_test.bat** on Windows OS (With Docker installed, AWS Cli set and configured, must have access to your own AWS account), and will automatically careat security group, key pair, and multiple EC2 instances, then migrate the code to remote server, build docker image, finally run one of the 3 type bookstore server (frontend/catalog/order)  
 
-3. See the testing result on console, it will tell you if the buyer bought the products or not. For every test case, it will jump out multiple console windows, they represent a buyer peer, seller peer, or a peer with no role. They will individually print logs like:  
+3. See the testing result on console, it will tell you what client requet each server received, and the server's response, you should be able to see the logs like:
 
-Output info to loc:info-id-0  
-ServerId:0 start!!  
-Reply 0 1 0 0  
-ServerID:0 receive msg:Reply 0 1 0 0 with path:0  
-Output info to loc:info-id-0  
-BuyerID:0 bought fish from 1  
-BuyerID:0 start to buy boars  
-Output info to loc:info-id-0  
 
-Fianlly, the distributed system will output all testing log to "output" folder
 
-4.To verify the correctness, check the log output of test1.out ~ test4.out under "output" folder  
+Fianlly, the distributed servers will output all testing log to "output" folder
+
+4.To verify the correctness, check the log file **"catalog_log"** & **"order_log"** under "output" folder  
 
 
 # Directory/Files Description
