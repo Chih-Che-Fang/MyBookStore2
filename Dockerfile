@@ -1,4 +1,5 @@
 FROM python:3
+#Copy the code to docker image
 COPY . /usr/src/MyBookStore
 WORKDIR /usr/src/MyBookStore
 
@@ -13,4 +14,5 @@ RUN pip install -r requirements.txt
 COPY run.sh .
 RUN chmod a+x run.sh
 
+#Entry point of the docker image
 CMD ["./run.sh"]

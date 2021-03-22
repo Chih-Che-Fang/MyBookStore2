@@ -3,43 +3,48 @@ from flask import Flask, redirect, jsonify, request
 
 #Create the book store front end server instance
 app = Flask(__name__)
-#Initialition of inference model
+#Crate a global server address reference
 server_addr = {}
 
-#Perform inference request 
-#input: images
-#output: classification of all images
+#Process search client request 
+#input: book topic
+#output: list of book of the searched topic
 @app.route('/search', methods=['GET'])
 def search():
-    #Only process POST/GET request
-    topic = request.args.get('topic')
-    return redirect('http://{}/query_by_topic?topic={}'.format(server_addr['catalog'], topic))
+	print('Frontend Server: Redirect search request to catalog server')
+	topic = request.args.get('topic')
+	#redirect search request to catalog server
+	return redirect('http://{}/query_by_topic?topic={}'.format(server_addr['catalog'], topic))
 
-#Perform inference request 
-#input: images
-#output: classification of all images
+#Process search client request 
+#input: book item number
+#output: detail book inforamtion of the item number
 @app.route('/lookup', methods=['GET'])
 def lookup():
-    #Only process POST/GET request
-    item_number = request.args.get('item_number')
-    return redirect('http://{}/query_by_item?item_number={}'.format(server_addr['catalog'], item_number))
+	print('Frontend Server: Redirect lookup request to catalog server')
+	item_number = request.args.get('item_number')
+	#redirect search request to catalog server
+	return redirect('http://{}/query_by_item?item_number={}'.format(server_addr['catalog'], item_number))
 
-#Perform inference request 
-#input: images
-#output: classification of all images
+#Process search client request 
+#input: book item number
+#output: transaction result of buy request
 @app.route('/buy', methods=['GET'])
 def buy():
-    #Only process POST/GET request
-    item_number = request.args.get('item_number')
-    return redirect('http://{}/buy?item_number={}'.format(server_addr['order'], item_number))
+	print('Frontend Server: Redirect buy request to catalog server')
+	item_number = request.args.get('item_number')
+	return redirect('http://{}/buy?item_number={}'.format(server_addr['order'], item_number))
 
-def getServerAddress(file_name):
+#Set a global server address reference
+#input: global address config file name
+#output: None
+def setServerAddress(file_name):
     file = open(file_name, 'r')
     for line in file.readlines():
         tokens = line.strip().split(',')
         server_addr[tokens[0]] = tokens[1]
     
-#start the inferece server
+#start the bookstore frontend server
 if __name__ == '__main__':
-    getServerAddress('config')
+    setServerAddress('config')
     app.run(host='0.0.0.0', port=8000, threaded=True)
