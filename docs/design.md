@@ -1,4 +1,4 @@
-# My Bazaar Design Doc
+# My Book Store Design Doc
 
 Authors: Chih-Che Fang, Shivam Srivastava, Shiyang Wang
 

@@ -6,11 +6,12 @@
 **Enviornment:**  Windows + Docker  + AWS Cli2.0 installed + AWS cli configured with your own AWS account **(Please make sure you're able to access your AWS account by AWS CLI)**  
 **Applications:**   
 **[Intermediate Milestone]**  
-test1: Perform lookup and search methods correctly.  
-test2: Buy operations run and update the stock of the item correctly  
-test3: (Race Condition) 3 clients buy book "RPCs for Dummies" that only has 2 stock concurrently, only 2 client can buy the book
+test1: Perform search methods correctly.  
+test2: Perform lookup methods correctly.  
+test3: Buy operations run and update the stock of the item correctly  
+test4: (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
 **[Final Milestone]**  
-test4: Run above test cases, but deploy system on three machines, with each of the three components on a different machine  
+test5: Run above test cases, but deploy system on three machines, with each of the three components on a different machine  
 
 # How to run?  
 
