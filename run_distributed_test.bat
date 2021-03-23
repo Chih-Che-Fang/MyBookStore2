@@ -1,3 +1,4 @@
+del /Q .\output\*
 REM Create key pair, security group
 aws ec2 delete-key-pair --key-name 677kp32144321
 aws ec2 create-key-pair --key-name 677kp32144321 --query "KeyMaterial" --output text > 677kp32144321.pem
@@ -64,23 +65,36 @@ for /f "tokens=*" %%a in (ips.txt) do (
 	set /a count += 1
 )
 
-REM Wait for docker image to be ready
-timeout 35
+timeout 10
 
-REM Send a seriers of Client Requests for validation
-@ECHO ON
-curl -L http://!frontend_addr!/lookup?item_number=1
-curl -L http://!frontend_addr!/lookup?item_number=2
-curl -L http://!frontend_addr!/lookup?item_number=3
-curl -L http://!frontend_addr!/lookup?item_number=4
-curl -L http://!frontend_addr!/search?topic=distributed+systems"
-curl -L http://!frontend_addr!/search?topic=graduate+school
+REM Get docker entry point script
+xcopy /y .\docker_scripts\run_client.sh .\run.sh
 
-curl -L http://!frontend_addr!/buy?item_number=1
-curl -L http://!frontend_addr!/buy?item_number=1
-curl -L http://!frontend_addr!/buy?item_number=1
-curl -L http://!frontend_addr!/buy?item_number=1
+REM kill all docker process
+@ECHO OFF
+FOR /f "tokens=*" %%i IN ('docker ps -aq') DO docker stop %%i
+FOR /f "tokens=*" %%i IN ('docker ps -aq') DO docker rm %%i
 
+REM Build docker image for client
+docker build -t bookstore_client .
+
+REM Run docker image to run all tests
+start cmd /k docker run -it -p 8000-8002:8000-8002 --name mybookstore32144321 bookstore_client 
+
+timeout 10
+REM Collect log from catalog & order server
+set /a count = 0
+for /f "tokens=*" %%a in (ips.txt) do (
+	if !count! == 1 (
+		ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "cd ~/MyBookStore;sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/catalog_log ./output"
+		scp -i 677kp32144321.pem ec2-user@%%a:~/MyBookStore/output/catalog_log output\
+	)
+	if !count! == 2 (
+		ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "cd ~/MyBookStore;sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/order_log ./output"
+		scp -i 677kp32144321.pem ec2-user@%%a:~/MyBookStore/output/order_log output\
+	)
+	set /a count += 1
+)
 
 REM release AWS resources
 aws ec2 delete-security-group --group-name MyBookStore32144321

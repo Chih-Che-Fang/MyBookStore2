@@ -11,34 +11,24 @@ echo frontend,127.0.0.1:8000>config
 echo catalog,127.0.0.1:8001>>config
 echo order,127.0.0.1:8002>>config
 
-
+REM Get docker entry point script
+xcopy /y .\docker_scripts\run_all.sh .\run.sh
 
 REM kill all docker process
 @ECHO OFF
-FOR /f "tokens=*" %%i IN ('docker ps -q') DO docker kill %%i
+FOR /f "tokens=*" %%i IN ('docker ps -aq') DO docker stop %%i
+FOR /f "tokens=*" %%i IN ('docker ps -aq') DO docker rm %%i
 
 REM Build docker image
 docker build -t bookstore .
 
 REM Run the docker image and map port to local host
-start cmd /k docker run -it -p 8000-8002:8000-8002 bookstore 
+start cmd /k docker run -p 8000-8002:8000-8002 --name mybookstore32144321 bookstore 
 
-REM Wait for the docker image initialization
-timeout 10
+timeout 20
 
-REM Perform a series of client rquest for validation
-@ECHO ON
-curl -L "http://127.0.0.1:8000/lookup?item_number=1"
-curl -L "http://127.0.0.1:8000/lookup?item_number=2"
-curl -L "http://127.0.0.1:8000/lookup?item_number=3"
-curl -L "http://127.0.0.1:8000/lookup?item_number=4"
-curl -L "http://127.0.0.1:8000/search?topic=distributed+systems"
-curl -L "http://127.0.0.1:8000/search?topic=graduate+school"
-
-curl -L "http://127.0.0.1:8000/buy?item_number=1"
-curl -L "http://127.0.0.1:8000/buy?item_number=1"
-curl -L "http://127.0.0.1:8000/buy?item_number=1"
-curl -L "http://127.0.0.1:8000/buy?item_number=1"
-
+REM pull log from catalog & order server in the container
+docker cp mybookstore32144321:/usr/src/MyBookStore/output/catalog_log .\output
+docker cp mybookstore32144321:/usr/src/MyBookStore/output/order_log .\output
 
 pause
