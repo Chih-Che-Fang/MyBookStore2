@@ -202,18 +202,19 @@ BuyerID:2 start to buy fish
 **Result:** Pass, buyer 0,2,3 want to buy boars from seller 1, and seller 1 also replied all of them (race condition), only buyer 3 baught boars from seller 1 successfully  
 
 # Evaluation and Measurements
-## 1.	Compare the latencies to process an RPC call between peers on different servers, as well as latencies between peers on your local machine(s)  
+## 1.	Compute the average response time per client search request by measuring the end-to-end response time seen by a client
 
-Latency (multiple servers) | Latency (single server)
------------- | -------------
-100ms | 13ms  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
+------------ | ------------- | ------------- | -------------
+5.1327ms | 5.12ms | 5.26ms  |  5.28ms
 
-*PS: latency calculated from 1000 sampled RPC requests
+PS: all response time sampled from 1000 requests
+PS: We defines response time as the time the client receives responses from remote servers, the time doesn't imply the message is being processed since we use asynchronous RPC call design, the server will launch a new thread whenever it receives a request from a client, sending a message to background processing, and respond to client immediately.  
 
-Results show latency on a single machine is much less than the latency when peers are deployed on multiple different servers. It's reasonable due to the network transportation time and marshaling/unmarshalling process of RPC call. In a single machine, the latency doesn't include network transportation time while in multiples servers network transporting time matters.
+Results show averaged response times are almost the same (only a slight increase) as multiple clients are making requests to a peer. It matches what we expected since our system design will launch a new thread whenever receive a client request. The response time shouldn't be affected by the number of concurrent request since the server respond to clients as soon as it receives the request. However, we still see a little increase in average response time, I think it might be affected by the time used to launch a new thread. As more requests receive concurrently, the server spends some time launching a new thread, which causes a slight difference.  
 
-## 2.	Compare the response times when multiple clients are concurrently making requests to a peer, for instance, you can vary the number of neighbors for each peer and observe how the average response time changes, make necessary plots to support your conclusions.  
 
+## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
 
 Avg Response Time (1 neighbor) | Avg Response Time (3 neighbor) |  Avg Response Time (5 neighbor) |  Avg Response Time (9 neighbor)
 ------------ | ------------- | ------------- | -------------
