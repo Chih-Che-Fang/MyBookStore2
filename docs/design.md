@@ -219,11 +219,12 @@ Results show averaged response times are almost the same (only a slight increase
 Avg response time of **Frontend Server** to **Search** request (Seen by Client)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
-79.524ms | 79.636ms | 86.7036ms  | 94.7036ms
+79.524ms | 79.636ms | 86.7036ms  | 94.7036ms  
+
 Avg response time of **Catalog Server** to **Query by Topic** request (Seen by Frontend Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
-4.6953ms | 79.636ms | 86.7036ms  | 94.7036ms
+4.6953ms | 79.636ms | 86.7036ms  | 94.7036ms  
 
 **Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
 Avg response time of **Frontend Server** to **Buy request** (Seend By Client)  
@@ -238,7 +239,7 @@ Avg response time of **Catalog Server** to **Query by Item Number** request (See
 
 Avg Response Time (1 neighbor) | Avg Response Time (3 neighbor) |  Avg Response Time (5 neighbor) |  Avg Response Time (9 neighbor)
 ------------ | ------------- | ------------- | -------------
-5.1327ms | 5.12ms | 5.26ms  |  5.28ms
+5.1327ms | 5.12ms | 5.26ms  |  5.28ms  
 
 PS: all response time sampled from 1000 requests
 PS: We defines response time as the time the client receives responses from remote servers, the time doesn't imply the message is being processed since we use asynchronous RPC call design, the server will launch a new thread whenever it receives a request from a client, sending a message to background processing, and respond to client immediately.  
