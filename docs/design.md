@@ -221,10 +221,12 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 79.524ms | 79.636ms | 86.7036ms  | 94.7036ms  
 
+
 Avg response time of **Catalog Server** to **Query by Topic** request (Seen by Frontend Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
 4.6953ms | 4.6999ms | 4.8698ms  | 4.8789ms  
+
 
 **Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
 Avg response time of **Frontend Server** to **Buy request** (Seend By Client)  
@@ -232,30 +234,37 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 94.972ms | 94.424ms | 94.999ms  | 110.733ms  
 
+
 Avg response time of **Order Server** to **Buy request** (Seend By Frontend Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 15.8532ms | 15.636ms | 15.9036ms  | 16.0036ms  
+
 
 Avg response time of **Catalog Server** to **Query by Item Number** request (Seend By Order Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 5.6154ms | 5.636ms | 5.64ms  | 6.309ms  
 
-Avg response time of **Catalog Server** to **Update** request** (Seend By Order Server)  
 
+Avg response time of **Catalog Server** to **Update** request** (Seend By Order Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | ------------
 4.623ms | 4.782ms | 4.9531ms  | 5.321ms  
 
+
 **Lookup operation:**  (Flow: Client -> fronend -> catalog)  
 Avg response time of **Frontend Server** to **Lookup** request (Seen by Client)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
+------------ | ------------- | ------------- | -------------
+76.293ms | 78.131ms | 86.386ms  | 92.9996ms  
+
 
 Avg response time of **Catalog Server** to **Query by Item Number** request (Seen by Frontend Server)  
-
-Avg Response Time (1 neighbor) | Avg Response Time (3 neighbor) |  Avg Response Time (5 neighbor) |  Avg Response Time (9 neighbor)
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
-5.1327ms | 5.12ms | 5.26ms  |  5.28ms  
+4.456ms | 4.3929ms | 4.4558ms  | 4.5089ms  
+
 
 PS: all response time sampled from 1000 requests
 PS: We defines response time as the time the client receives responses from remote servers, the time doesn't imply the message is being processed since we use asynchronous RPC call design, the server will launch a new thread whenever it receives a request from a client, sending a message to background processing, and respond to client immediately.  
