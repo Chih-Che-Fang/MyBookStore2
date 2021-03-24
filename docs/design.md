@@ -206,7 +206,7 @@ BuyerID:2 start to buy fish
 
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
-5.1327ms | 5.12ms | 5.26ms  |  5.28ms
+79.524ms | 79.636ms | 86.7036ms  | 94.7036ms
 
 PS: all response time sampled from 1000 requests
 PS: We defines response time as the time the client receives responses from remote servers, the time doesn't imply the message is being processed since we use asynchronous RPC call design, the server will launch a new thread whenever it receives a request from a client, sending a message to background processing, and respond to client immediately.  
@@ -215,6 +215,20 @@ Results show averaged response times are almost the same (only a slight increase
 
 
 ## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
+Search Operation:
+Avg response time of Client <-> Frontend Server (Search)
+Avg response time of Frontend Server <-> Catalog Server (Query by Topic)
+
+
+Buy Operation:
+Avg response time of Client <-> Frontend Server (Buy)
+Avg response time of Frontend Server <-> Order Server (Buy)
+Avg response time of Order Server <-> Catalog Server (Query by Item)
+Avg response time of Order Server <-> Catalog Server (Update)
+
+Lookup operation:
+Avg response time of Client <-> Frontend Server (Lookup)
+Avg response time of Frontend Server <-> Catalog Server (Query by Item)
 
 Avg Response Time (1 neighbor) | Avg Response Time (3 neighbor) |  Avg Response Time (5 neighbor) |  Avg Response Time (9 neighbor)
 ------------ | ------------- | ------------- | -------------
