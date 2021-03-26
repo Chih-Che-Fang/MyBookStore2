@@ -73,8 +73,8 @@ order,127.0.0.1:8082
 ## Concurency / Race Condition Protection
 When a RPC server receives a new client request, its message handler will launch a new thread to process the message. To enable concurrent message processing, our peer-to-peer distributed system use a shared file to store the information of each peer (Ex. product, type, item count, etc...). Therefore, the information of each peer needs to be protected and we used a lock to protect the shared peer information. When a peer read/write its data, we ensured the whole operation and process is atomic and therefore avoid the race condition. To be more specific, it avoids that a seller with only 1 item sell multiple products to products to a buyer (Since a seller may send multiple replies to different buyers)
 
-## Peer Shared Information Format
-We store the shared peer information and named it as info-id with the format:  
+## Book Initialization Log
+We store the book initialization information and named it as catalog_log with the format:  
 Format = **[type peerID Product NeighborID Count TestName]**
 
 **type:** Indicate whether the peer is a buyer, seller, or no-role. When the value is "na", the system randomly assigns a type to this peer.  
