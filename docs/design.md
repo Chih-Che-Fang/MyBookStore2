@@ -1,12 +1,6 @@
 # My Book Store Design Doc
 
-Authors: Chih-Che Fang, Shivam Srivastava, Shiyang Wang
-
-# Problem description
-
-This project is a simple distributed program that implements a peer-to-peer market, The bazaar contains two types of people (i.e., computing nodes): buyers and sellers. Each seller sells one of the following goods: fish, salt, or boars. Each buyer in the bazaar is looking to buy one of these three items.
-Buyers find sellers by announcing what they wish to buy or sell. All announcements must follow the peer-to-peer model. Each buyer shall communicate their needs to all her neighbors, who will then propagate the message to their neighbors and so on, until a seller is found or the maximum limit on the number of hops a message can traverse is reached.
-If a seller is found, then the seller sends back a response that traverses in the reverse direction back to the buyer. At this point, the buyer and the seller directly enter into a transaction (without using intermediate peers).
+Authors: Chih-Che Fang
 
 # System Design
 
@@ -202,22 +196,69 @@ BuyerID:2 start to buy fish
 **Result:** Pass, buyer 0,2,3 want to buy boars from seller 1, and seller 1 also replied all of them (race condition), only buyer 3 baught boars from seller 1 successfully  
 
 # Evaluation and Measurements
-## 1.	Compare the latencies to process an RPC call between peers on different servers, as well as latencies between peers on your local machine(s)  
+## 1.	Compute the average response time per client search request by measuring the end-to-end response time seen by a client
 
-Latency (multiple servers) | Latency (single server)
------------- | -------------
-100ms | 13ms  
-
-*PS: latency calculated from 1000 sampled RPC requests
-
-Results show latency on a single machine is much less than the latency when peers are deployed on multiple different servers. It's reasonable due to the network transportation time and marshaling/unmarshalling process of RPC call. In a single machine, the latency doesn't include network transportation time while in multiples servers network transporting time matters.
-
-## 2.	Compare the response times when multiple clients are concurrently making requests to a peer, for instance, you can vary the number of neighbors for each peer and observe how the average response time changes, make necessary plots to support your conclusions.  
-
-
-Avg Response Time (1 neighbor) | Avg Response Time (3 neighbor) |  Avg Response Time (5 neighbor) |  Avg Response Time (9 neighbor)
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
-5.1327ms | 5.12ms | 5.26ms  |  5.28ms
+79.524ms | 79.636ms | 86.7036ms  | 94.7036ms
+
+PS: all response time sampled from 1000 requests
+PS: We defines response time as the time the client receives responses from remote servers, the time doesn't imply the message is being processed since we use asynchronous RPC call design, the server will launch a new thread whenever it receives a request from a client, sending a message to background processing, and respond to client immediately.  
+
+Results show averaged response times are almost the same (only a slight increase) as multiple clients are making requests to a peer. It matches what we expected since our system design will launch a new thread whenever receive a client request. The response time shouldn't be affected by the number of concurrent request since the server respond to clients as soon as it receives the request. However, we still see a little increase in average response time, I think it might be affected by the time used to launch a new thread. As more requests receive concurrently, the server spends some time launching a new thread, which causes a slight difference.  
+
+
+## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
+**Search Operation:**  (Flow: Client -> frontend -> catalog)  
+Avg response time of **Frontend Server** to **Search** request (Seen by Client)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
+------------ | ------------- | ------------- | -------------
+79.524ms | 79.636ms | 86.7036ms  | 94.7036ms  
+
+
+Avg response time of **Catalog Server** to **Query by Topic** request (Seen by Frontend Server)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
+------------ | ------------- | ------------- | -------------
+4.6953ms | 4.6999ms | 4.8698ms  | 4.8789ms  
+
+
+**Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
+Avg response time of **Frontend Server** to **Buy request** (Seend By Client)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
+------------ | ------------- | ------------- | -------------
+94.972ms | 94.424ms | 94.999ms  | 110.733ms  
+
+
+Avg response time of **Order Server** to **Buy request** (Seend By Frontend Server)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
+------------ | ------------- | ------------- | -------------
+15.8532ms | 15.636ms | 15.9036ms  | 16.0036ms  
+
+
+Avg response time of **Catalog Server** to **Query by Item Number** request (Seend By Order Server)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
+------------ | ------------- | ------------- | -------------
+5.6154ms | 5.636ms | 5.64ms  | 6.309ms  
+
+
+Avg response time of **Catalog Server** to **Update** request** (Seend By Order Server)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
+------------ | ------------- | ------------- | ------------
+4.623ms | 4.782ms | 4.9531ms  | 5.321ms  
+
+
+**Lookup operation:**  (Flow: Client -> fronend -> catalog)  
+Avg response time of **Frontend Server** to **Lookup** request (Seen by Client)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
+------------ | ------------- | ------------- | -------------
+76.293ms | 78.131ms | 86.386ms  | 92.9996ms  
+
+
+Avg response time of **Catalog Server** to **Query by Item Number** request (Seen by Frontend Server)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
+------------ | ------------- | ------------- | -------------
+4.456ms | 4.3929ms | 4.4558ms  | 4.5089ms  
+
 
 PS: all response time sampled from 1000 requests
 PS: We defines response time as the time the client receives responses from remote servers, the time doesn't imply the message is being processed since we use asynchronous RPC call design, the server will launch a new thread whenever it receives a request from a client, sending a message to background processing, and respond to client immediately.  
