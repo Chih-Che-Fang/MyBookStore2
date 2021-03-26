@@ -27,13 +27,11 @@ Authors: Chih-Che Fang
 **Sell:** Interface that defines how a seller responds to a buyer if the seller has the product the buyer likes.  
 
 ## Sequence Diagram
-**Peer Interaction Workflow**  
+**Client/Server Interaction Workflow**  
 ![WorkFlow diagram](./WorkFlow.PNG "WorkFlow")
 
 Notice that the seller will send a buy ack back to the buyer if the buyer successfully bought the product. We add buy ack to handle with a race condition that seller might reply to multiple buyers but only one buyer can buy the product, which means buy request from a buyer doesn't necessarily succeed each time. We must let the buyer know if they successfully bought the product or not.  
 
-**RPC Request Handling Workflow**  
-![RPCReq diagram](./RPCReq.PNG "RPCReq")
 
 # How it Works
  ## Bootstraping & Communication
