@@ -1,12 +1,6 @@
 # My Book Store Design Doc
 
-Authors: Chih-Che Fang, Shivam Srivastava, Shiyang Wang
-
-# Problem description
-
-This project is a simple distributed program that implements a peer-to-peer market, The bazaar contains two types of people (i.e., computing nodes): buyers and sellers. Each seller sells one of the following goods: fish, salt, or boars. Each buyer in the bazaar is looking to buy one of these three items.
-Buyers find sellers by announcing what they wish to buy or sell. All announcements must follow the peer-to-peer model. Each buyer shall communicate their needs to all her neighbors, who will then propagate the message to their neighbors and so on, until a seller is found or the maximum limit on the number of hops a message can traverse is reached.
-If a seller is found, then the seller sends back a response that traverses in the reverse direction back to the buyer. At this point, the buyer and the seller directly enter into a transaction (without using intermediate peers).
+Authors: Chih-Che Fang
 
 # System Design
 
