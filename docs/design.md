@@ -8,23 +8,26 @@ Authors: Chih-Che Fang
 ![UML diagram](./UML.png "UML")
 
 ## Class Discription  
-**Person:** A person represents a peer. It's an abstract (Super-class) class of buyers, sellers, and peer with no role, define all required attributes and actions (lookup/buy/sell) each peer must have.  
-**Buyer:** A buyer peer, implements buy/sell/lookup and inherit all attributes from person class.  
-**Seller:** A seller peer, it implement buy/sell/lookup and inherit all attributes from person class.  
-**NoRole:** Peer with no role, it implement buy/sell/lookup and inherit all attributes from person class.  
-**Server:** A server represents the RPC server that resides in each peer.  
-**Client:** A client represents the RPC client used to access the remote RPC server.    
-**SystemMonitor:** A class used to store and calculate the latency/average response time of client requests.  
-**AddressLookUp:** A (neighbor, IP) mapping lookup owned by each peer, allowing a peer to send RPC requests to other peers.  
-**Logger:** A class used to output important output for each test case. We can therefore verify the correctness of each test case.  
-**MessageHandler:** The class defines how RPC server handle a message  
-**MessageHandlerThread:** The message handler will create a new message handler thread to process each new request. This class defines the specific logic of how to handle each type of message.  
+**frontend_server:** frontend server that process and dispatch client's request  
+**catalog_server:** catalog server that host book information and is able to serve update, query_by_item, query_by_topic request from frontend and order server
+**order_server:** order server that process frontend server's buy request
+**SystemMonitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
+**Client:** A class used to perform multiple HTTP request to frontend server
 
 
-## Interface Discription:  
-**Buy:** Interface that defines how buyers respond to the seller to buy a product.  
-**LookUp:** Interface that defines how a buyer search the network; all matching sellers respond to this message with their IDs using a reply(buyerID, sellerID) call.  
-**Sell:** Interface that defines how a seller responds to a buyer if the seller has the product the buyer likes.  
+## Operation Discription:  
+The front end server supports three operations:  
+**search(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
+**lookup(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
+**buy(item_number)**: Allows client to buy a book with the item number  
+
+The catalog server supports three operations:  
+**query_by_topic(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
+**query_by_item(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
+**update(item_number, cost, stock_update)**: Allows client to update cost or update the stock of book  
+
+The order server supports three operations:  
+**buy(item_number)**: Allows the user to buy a book with certain item number
 
 ## Sequence Diagram
 **Client/Server Interaction Workflow**  
