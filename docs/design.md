@@ -16,17 +16,17 @@ Authors: Chih-Che Fang
 
 
 ## Operation Discription:  
-The front end server supports three operations:  
+The **front end server** supports three operations:  
 **search(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
 **lookup(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
 **buy(item_number)**: Allows client to buy a book with the item number  
 
-The catalog server supports three operations:  
+The **catalog server** supports three operations:  
 **query_by_topic(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
 **query_by_item(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
 **update(item_number, cost, stock_update)**: Allows client to update cost or update the stock of book  
 
-The order server supports three operations:  
+The **order server** supports three operations:  
 **buy(item_number)**: Allows the user to buy a book with certain item number
 
 ## Sequence Diagram
