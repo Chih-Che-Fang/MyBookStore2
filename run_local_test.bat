@@ -1,9 +1,9 @@
 REM Write initialization log to catalog & order server log
 echo. 2> .\output\order_log
-echo init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day> .\output\catalog_log
-echo init,2,3,20,distributed systems,RPCs for Dummies>> .\output\catalog_log
-echo init,3,3,5,graduate school,Xen and the Art of Surviving Graduate School>> .\output\catalog_log
-echo init,4,3,15,graduate school,Cooking for the Impatient Graduate Student>> .\output\catalog_log
+echo init,1,1000,10,distributed systems,How to get a good grade in 677 in 20 minutes a day> .\output\catalog_log
+echo init,2,1000,20,distributed systems,RPCs for Dummies>> .\output\catalog_log
+echo init,3,1000,5,graduate school,Xen and the Art of Surviving Graduate School>> .\output\catalog_log
+echo init,4,1000,15,graduate school,Cooking for the Impatient Graduate Student>> .\output\catalog_log
 echo. 2>> .\output\catalog_log
 
 REM  Write config info for local machine

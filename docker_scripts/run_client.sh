@@ -1,3 +1,3 @@
 #!/bin/bash
-exec python3 ./src/client.py
-read -p 'Press any key'
+exec python3 ./src/client.py &
+sleep 120000

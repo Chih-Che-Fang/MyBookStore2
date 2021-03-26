@@ -121,7 +121,6 @@ def set_init_state(file_name):
         tokens = line.strip().split(',')
 		#if find init catalog log, add the book info to the book store 
         if tokens[0] == 'init':
-            print(tokens[1])
             books[tokens[1]] = Book(tokens[1], int(tokens[2]), tokens[3], tokens[4], tokens[5])
         
     

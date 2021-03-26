@@ -1,10 +1,17 @@
 from flask import Flask, redirect, jsonify, request
-
+import time
+import requests
+from performance_monitor import Monitor
 
 #Create the book store front end server instance
 app = Flask(__name__)
 #Crate a global server address reference
 server_addr = {}
+
+#Performance monitors to trace average response time
+q_by_topic_monitor = Monitor('Frontend Server', 'query by item topic')
+q_by_item_monitor = Monitor('Frontend Server', 'query by item number')
+buy_monitor = Monitor('Frontend Server', 'buy')
 
 #Process search client request 
 #input: book topic
@@ -13,8 +20,14 @@ server_addr = {}
 def search():
 	print('Frontend Server: Redirect search request to catalog server')
 	topic = request.args.get('topic')
+	
 	#redirect search request to catalog server
-	return redirect('http://{}/query_by_topic?topic={}'.format(server_addr['catalog'], topic))
+	start_time = time.time()
+	res = requests.get('http://{}/query_by_topic?topic={}'.format(server_addr['catalog'], topic)).json()
+	q_by_topic_monitor.add_sample(time.time() - start_time)
+	
+	return res
+	
 
 #Process search client request 
 #input: book item number
@@ -23,8 +36,13 @@ def search():
 def lookup():
 	print('Frontend Server: Redirect lookup request to catalog server')
 	item_number = request.args.get('item_number')
+	
 	#redirect search request to catalog server
-	return redirect('http://{}/query_by_item?item_number={}'.format(server_addr['catalog'], item_number))
+	start_time = time.time()
+	res = requests.get('http://{}/query_by_item?item_number={}'.format(server_addr['catalog'], item_number)).json()
+	q_by_item_monitor.add_sample(time.time() - start_time)
+	
+	return res
 
 #Process search client request 
 #input: book item number
@@ -33,7 +51,13 @@ def lookup():
 def buy():
 	print('Frontend Server: Redirect buy request to catalog server')
 	item_number = request.args.get('item_number')
-	return redirect('http://{}/buy?item_number={}'.format(server_addr['order'], item_number))
+
+	#redirect search request to order server
+	start_time = time.time()
+	res = requests.get('http://{}/buy?item_number={}'.format(server_addr['order'], item_number)).json()
+	buy_monitor.add_sample(time.time() - start_time)
+	
+	return res
 
 #Set a global server address reference
 #input: global address config file name
