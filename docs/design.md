@@ -33,41 +33,41 @@ The order server supports three operations:
 **Client/Server Interaction Workflow**  
 ![WorkFlow diagram](./WorkFlow.PNG "WorkFlow")
 
-Notice that the seller will send a buy ack back to the buyer if the buyer successfully bought the product. We add buy ack to handle with a race condition that seller might reply to multiple buyers but only one buyer can buy the product, which means buy request from a buyer doesn't necessarily succeed each time. We must let the buyer know if they successfully bought the product or not.  
 
 
 # How it Works
  ## Bootstraping & Communication
-We applied XML-RPC framework as a peer communication way. Each peer is at the same time an RPC server and RPC client. When a peering is created, it launches a listening RPC server to keep receive client requests from remote peers. Since each peer has global knowledge (Ex. Other peer's IP and port address, what neighbor it has, etc...) of the network topology, it can send a search request to discover neighbors and wait for their response. In contrast, if a peer receives a request from peers, it knows the IP/port address and can respond to the peer. 
+I used Flask to implement each server. I start frontend server, catalog server, order server in sequence and finally launch client to send HTTP request to frontend server.
+Each Client reprensent a thread so that multiple client can request a single frontend server concurrently. Flask server support multi-threaded so that the server will launch a new thread for processing each new client request. Single Client request is implment as a synchronous request and will wait for frontend server's response.  When frontend server receive client's request, it just lauch a new HTTP request to the corresponding server.
 
-The server maps its message handler to a class. In our system, it maps its message handler to MessageHandler class and the class will implement the logic of how to handle each type of message. For each new request, the MessageHandler will launch a new thread to process it.
+Servers can know each other's IP address and port by reading config file. Catalog server will read from catalog_log to init the status of books. Catalog and order will output executed operation to catalog_log and order_log under "output" folder.
 
-## RPC Message Format
-We used our customized RPC message as follows:  
-Format = **[Action arg1 (arg2) msgPath sentTo]**  
 
-**Action:** Indicate whether it is a buy/sell/lookup request  
-**arg1, arg2:** Argument of the request  
-**msgPath:** The path of the message, used by reply message to traverse the original route back to the buyer.  
-**sentTo:** Indicate what peer the message is sending to. The information is used by the RPC server to deliver this request to the right peer.  
+## Operation Request Format
+**Lookup:**  
+request: [SERVER_IP:8000/lookup/item_number], Ex. http://127.0.0.1/lookup?item_number=1  
+response: {'item_number': item_number, 'stock':self.stock, 'cost': cost, 'type': type, 'title': title}, Ex. {'item_number': 1, 'stock':1000, 'cost': 50, 'type': distributed systems, 'title': How to get a good grade in 677 in 20 minutes a day.}  
 
-Here is one example of RPC message that seller ID 1 sent a reply message back to buyer ID 0 along with path 0-1:
-[Reply 1 0 1 01 0 ]
+**Search:**  
+request: [SERVER_IP:8000/search/topic], Ex. http://127.0.0.1/search?topic=distributed systems  
+response: {'result': book list}, Ex. {'result': [{'item_number': 1, 'title':How to get a good grade in 677 in 20 minutes a day},{'item_number': 2, 'title':RPCs for Dummies}]}  
+
+**Buy:**  
+request: [SERVER_IP:8000/buy/item_number], Ex. http://127.0.0.1/buy?item_number=1  
+response: {'result': result}, Ex. {'result': Success}  
 
 ## Global IP/Port Address Configuration
-To allow peers to communicate with each other, we need to give them other peer's addresses and port, we use a file - config.txt to record the information.
-Format = **[PeerID, IPAddress:Port]**  
+To allow servers to communicate with each other, we need to give them other peer's addresses and port, we use a file - config to record the information.
+Format = **[Type, IPAddress:Port]**  
 
-**PeerID:** ID of the peer  
+**Type:** Type of the server
 **IPAddress:Port:** The peer's ipv4 address and listening port  
 
 Here is one example of configt file:  
-0,127.0.0.1:8080  
-1,127.0.0.1:8081  
-2,127.0.0.1:8082  
-3,127.0.0.1:8083  
-4,127.0.0.1:8084   
-
+frontend,127.0.0.1:8080  
+catalog,127.0.0.1:8081  
+order,127.0.0.1:8082  
+ 
 
 
 ## Concurency / Race Condition Protection
