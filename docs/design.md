@@ -9,10 +9,10 @@ Authors: Chih-Che Fang
 
 ## Class Discription  
 **frontend_server:** frontend server that process and dispatch client's request  
-**catalog_server:** catalog server that host book information and is able to serve update, query_by_item, query_by_topic request from frontend and order server
-**order_server:** order server that process frontend server's buy request
+**catalog_server:** catalog server that host book information and is able to serve update, query_by_item, query_by_topic request from frontend and order server  
+**order_server:** order server that process frontend server's buy request  
 **SystemMonitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
-**Client:** A class used to perform multiple HTTP request to frontend server
+**Client:** A class used to perform multiple HTTP request to frontend server  
 
 
 ## Operation Discription:  
