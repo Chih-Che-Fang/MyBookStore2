@@ -257,8 +257,7 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 
 PS: all response time sampled from 1000 requests  
 
-Results show averaged response times are almost the same (only a slight increase) as multiple clients are making requests to a peer. It matches what we expected since our system design will launch a new thread whenever receive a client request. The response time shouldn't be affected by the number of concurrent request since the server respond to clients as soon as it receives the request. However, we still see a little increase in average response time, I think it might be affected by the time used to launch a new thread. As more requests receive concurrently, the server spends some time launching a new thread, which causes a slight difference.  
-
+Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle with client requests, server still need time to process request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.
 
 ## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
 **Search Operation:**  (Flow: Client -> frontend -> catalog)  
