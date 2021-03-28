@@ -319,40 +319,43 @@ Results show averaged response times are almost the same (only a slight increase
 
 
 # Design Tradeoffs
-**RPC/RMI Call V.S Socket**  
-We must choose one of the ways for communication among peers. The pros of RPC/RMI is:    
-1. Allow user to define communicate interface, more human-readable and concise  
-2. Don't need to worry about low-level networking communication implementation  
-3. Remove the complexity of low-level networking communication implementation  
+**Flask  V.S Django/Struts**  
+We must choose one of web server framework to implement the servers, the pros of Django/Struts framework are:  
+1. It is a versatile framework and can be used for any website (social network, news site, content management, and more) with content in any format like HTML, XML, JSON, and more. It works in tandem with any client-side framework.  
+2. It is a secure framework and automatically manages standard security features like user account management, transaction management, cross-site request forgery, clickjacking, and more.  
+3. It is scalable and maintainable. Django follows design patterns and principles to reuse and maintain the code.  
 
-The cons of RPC/RMI:  
-1. Reduced flexibility on low-level networking implementation and communication interface  
+The cons of Django/Struts are:  
+1. Configuration is complicated than Flask  
+2. Lack of built-in development server and harder to devug  
 
-We finally choose to use RPC as our peer communication since we want to hide the complexity of lowe-lever networking communication, making the system more simple, concise, and easy to debug. Also, this assignment doesn't require us to implement a difficult connection fault tolerance or mechanism, we don't need a socket for flexibility.  
+We finally choose to use Flask as our server implementation as it is easier to configure and have several built-in server template. It support multi-thread without any effort. As this project is small, we don't suffer from scability and security problem.   
 
-**Synchronous RPC Call V.S Asyncrounous RPC Call**  
-The pros of using Synchronous RPC is:
-1. Don't need to worry about concurrency issues caused by multi-thread  
-2. Lower complexity of system design. 
-The cons of Synchronous RPC is:  
-1. Impaired performance (throughput) if multiple requests happen concurrently.  
-2. Higher latency 
+**Synchronous HTTP Request V.S Asyncrounous HTTP Request**  
+The pros of using Synchronous HTTP Request is:  
+1. Client side don't need to worry about the implementation of callback (from server) function  
+2. Client-side has lower complexity of system design. 
 
-We finally chose Asyncrounous RPC Call since we want better performance(throughput) and shorter response time of message processing. We used a lock and shared data to overcome the concurrent issue caused by multi-thread.  
+The cons of Synchronous HTTP Request is:  
+1. Inefficiency of resource usage (Client can do nothing when waiting for response)  
+2. Higher response time  
+
+We finally chose Synchronous HTTP Request since it makes the whole design in client-side simplier and consie. Alos, it makes debugging work easier. We use multiple threads to make HTTP request concurrently, overcoming the disavatage of inefficient resource use.  
 
 **Thread Pool V.S Dynamically Creating New Thread**  
-To handle client RPC requests, we can choose either to launch a new thread every time or use the existing thread pool to allocate thread to message processing task. The pros of Thread Pool is:  
+To handle client HTTP requests, we can choose either to launch a new thread every time or use the existing thread pool to allocate thread to message processing task. The pros of Thread Pool is:  
 1.Shorter response time of client request since we don't need to create new thread dynamically  
 The cons are:  
 1. Higher complexity of system since we need to handle the creation and recycle of threads  
 2. Higher memory usage since we must maintain a certain amount of thread  
 3. Hard to debug  
 
-We finally choose Dynamically Creating New Thread since the message handler thread doesn't have too many data attributes and creating is fast. Given that performance doesn't have too much difference and we want to simplify our design, we can dynamically creating a new thread to handle RPC client requests.
+We finally choose Dynamically Creating New Thread since the HTTP thread doesn't have too many data attributes and creating is fast. Given that performance doesn't have too much difference and we want to simplify our design, we can dynamically creating a new thread to handle HTTP client requests.
 
 **Dynamic Creation of EC2 Instances V.S Hot Stand-By EC2 Instances**  
-When launching multiple servers for peer deployment, we must choose between whether to dynamically creating new instances or deploy peers on hot standby servers. The pros of dynamic creation of EC2 Instances are:  
-1. Lower cost of AWS EC2 instance (EC2 bills by running time of instances)  
+When launching multiple servers for server deployment, we must choose between whether to dynamically creating new instances or deploy peers on hot standby servers. The pros of dynamic creation of EC2 Instances are:  
+1. Lower cost of AWS EC2 instance (EC2s are billed by running time of instances)  
+
 The cons of a hot stand-by EC2 instance is:  
 1. Longer deployment time since we need to wait for instances to be created  
 2. Need to re-migrate and compile code every time we update our code  
@@ -361,9 +364,10 @@ We finally chose Dynamic Creation of EC2 Instances since the cost is significant
 
 
 **Open All TCP Port between Different Remote Server V.S Open only certain range of TCP Port between Different Remote Server**  
-To allow RPC access permission between different servers so that peers can communicate with each other. We attached the Amazon security group to each Amazon EC2 instance to implement this permission control. The pros of opening all TCP Port between Different Remote Serve is:  
-1. Don't need to worry about port range change (Ex. Add/Deletion) as we may want to add a new port to a peer  
+To allow HTTP access permission between different servers so that servers can communicate with each other. We attached the Amazon security group to each Amazon EC2 instance to implement this permission control. The pros of opening all TCP Port between Different Remote Serve is:  
+1. Don't need to worry about port range change (Ex. Add/Deletion new port dynamically) as we may want to add a new port to a peer  
 2. Easy to configure  
+
 The cons are:  
 1.  Impaired security since if one of the servers is malicious, it can exploit and attack the opened port  
 
@@ -376,5 +380,5 @@ See [README.md #How to run?](https://github.com/Chih-Che-Fang/MyBookStore/blob/m
 
 # Possible Improvements and Extensions
 
-1. We didn't implement the fault tolerance. However, since catalog & order server stored all execuated log and initialization informtion, we can, in the future, implement a mechanisim reasily to recover books' status after a machine recovered from a fail
-2. We are using the thread per request model currently. Therefore, we could be optimized by using thread pool to improve response latency.
+1. We didn't implement the fault tolerance. However, since catalog & order server stored all execuated log and initialization informtion, we can, in the future, implement a mechanisim reasily to recover books' status after a machine recovered from a fail  
+2. We are using the thread per request model currently. Therefore, we could optimize averaged response latency time by using thread pool since each request doesn't need to wait for the launch time of a thread  
