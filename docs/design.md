@@ -273,7 +273,8 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 4.6953ms | 4.6999ms | 4.8698ms  | 4.8789ms  
 
 From the result, we see:
-- As concurrent client increases, the averaged response time also increase. The reason might be that oo much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.  
+- Most of the time spent on the route between Client and Frontend server  
+- As concurrent client increases, the averaged response time also increase. The reason might be that oo much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases (Even though all servers adopted multi-thread to handle with client requests, server still need time to process requests and launch a new thread).  
 - Averaged response time between Catalog server and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers is delpoyed on AWS EC2 instances, the physical distance between Catalog server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less.  
 
 <br />
@@ -292,6 +293,11 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 15.8532ms | 15.636ms | 15.9036ms  | 16.0036ms  
 
+Avg response time of **Catalog Server** to **Update** request** (Seen By Order Server)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
+------------ | ------------- | ------------- | ------------
+4.623ms | 4.782ms | 4.9531ms  | 5.321ms  
+
 
 Avg response time of **Catalog Server** to **Query by Item Number** request (Seen By Order Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
@@ -299,11 +305,12 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 5.6154ms | 5.636ms | 5.64ms  | 6.309ms  
 
 
-Avg response time of **Catalog Server** to **Update** request** (Seen By Order Server)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | ------------
-4.623ms | 4.782ms | 4.9531ms  | 5.321ms  
 
+From the result, we see:
+- Most of the time spent on the route between Client and Frontend server  
+- From order server's perspective, averaged response time of "Update" operation is longer than "Query by Item Number". Also, as concurrent client increases, the operation time also increases. The reason might be that we used lock in "update" operation but not in "Query by Item Number". As client increases, concurrent will compete for the lock and therefore increase the response time of "Update" operation  
+- As concurrent client increases, the averaged response time also increase. The reason might be that oo much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases (Even though all servers adopted multi-thread to handle with client requests, server still need time to process requests and launch a new thread).  
+- Averaged response time between Catalog server, Order Server, and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers is delpoyed on AWS EC2 instances, the physical distance between Catalog/Order server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less. 
 <br />
 <br />
 <br />
@@ -322,12 +329,11 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 
 PS: all response time sampled from 1000 requests
 
-<br />
-<br />
-<br />
+From the result, we see the same results as **Search** operation, please check the comment in **Search** operation section. Also, we observed "Search" request is slightly slower than "Lookup" request but slightly faster than "buy" requests (As buy request cost more round-trip time bewteen remote servers).  
 
-Results show averaged response times are almost the same (only a slight increase) as multiple clients are making requests to a peer. It matches what we expected since our system design will launch a new thread whenever receive a client request. The response time shouldn't be affected by the number of concurrent request since the server respond to clients as soon as it receives the request. However, we still see a little increase in average response time, I think it might be affected by the time used to launch a new thread. As more requests receive concurrently, the server spends some time launching a new thread, which causes a slight difference.  
-
+<br />
+<br />
+<br /> 
 
 # Design Tradeoffs
 **Flask  V.S Django/Struts**  
