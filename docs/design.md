@@ -272,6 +272,9 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 4.6953ms | 4.6999ms | 4.8698ms  | 4.8789ms  
 
+
+PS: all response time is calculated from 1000 requests  
+
 From the result, we see:
 - Most of the time spent on the route between Client and Frontend server  
 - As concurrent client increases, the averaged response time also increase. The reason might be that oo much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases (Even though all servers adopted multi-thread to handle with client requests, server still need time to process requests and launch a new thread).  
@@ -304,7 +307,7 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 5.6154ms | 5.636ms | 5.64ms  | 6.309ms  
 
-
+PS: all response time is calculated from 1000 requests  
 
 From the result, we see:
 - Most of the time spent on the route between Client and Frontend server  
@@ -327,7 +330,7 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 4.456ms | 4.3929ms | 4.4558ms  | 4.5089ms  
 
-PS: all response time sampled from 1000 requests
+PS: all response time is calculated from 1000 requests  
 
 From the result, we see the same results as **Search** operation, please check the comment in **Search** operation section. Also, we observed "Search" request is slightly slower than "Lookup" request but slightly faster than "buy" requests (As buy request cost more round-trip time bewteen remote servers).  
 
@@ -348,16 +351,16 @@ The cons of Django/Struts are:
 
 We finally choose to use Flask as our server implementation as it is easier to configure and have several built-in server template. It support multi-thread without any effort. As this project is small, we don't suffer from scability and security problem.   
 
-**Synchronous HTTP Request V.S Asyncrounous HTTP Request**  
-The pros of using Synchronous HTTP Request is:  
-1. Client side don't need to worry about the implementation of callback (from server) function  
-2. Client-side has lower complexity of system design. 
+**Pessimistic Concurrency Control (Lock) V.S Optimistic Concurency Control (Transaction Validation Mechanism)**  
+We need concurrency control to make sure transaction is consistent and atomic and prevent race condition happen. The pros of using Pessimistic Concurrency Control (Lock) is:    
+1. Don't need to worry about transaction starvation  
+2. Don't need to re-run the transaction and implement complicated transaction check mechansim  
 
-The cons of Synchronous HTTP Request is:  
-1. Inefficiency of resource usage (Client can do nothing when waiting for response)  
-2. Higher response time  
+The cons of Pessimistic Concurrency Control (Lock) is:  
+1. Potential deadlock may happen
+2. Acquiring/releasing lock cause extra overhead and may hurt efficiency
 
-We finally chose Synchronous HTTP Request since it makes the whole design in client-side simplier and consie. Alos, it makes debugging work easier. We use multiple threads to make HTTP request concurrently, overcoming the disavatage of inefficient resource use.  
+We finally chose Pessimistic Concurrency Control (Lock) since race condition happen too frequently when concurrent client > 5. It also makes the design simplier. Besides, since only catalog server use the lock, it is easy to skip deadlock problem.  
 
 **Thread Pool V.S Dynamically Creating New Thread**  
 To handle client HTTP requests, we can choose either to launch a new thread every time or use the existing thread pool to allocate thread to message processing task. The pros of Thread Pool is:  
@@ -368,7 +371,7 @@ The cons are:
 2. Higher memory usage since we must maintain a certain amount of thread  
 3. Hard to debug  
 
-We finally choose Dynamically Creating New Thread since the HTTP thread doesn't have too many data attributes and creating is fast. Given that performance doesn't have too much difference and we want to simplify our design, we can dynamically creating a new thread to handle HTTP client requests.
+We finally choose Dynamically Creating New Thread since the HTTP thread doesn't have too many data attributes and creating is fast. Given that performance doesn't have too much difference and we want to simplify our design, we can dynamically creating a new thread to handle HTTP client requests. It also help save memeory usage.    
 
 **Dynamic Creation of EC2 Instances V.S Hot Stand-By EC2 Instances**  
 When launching multiple servers for server deployment, we must choose between whether to dynamically creating new instances or deploy peers on hot standby servers. The pros of dynamic creation of EC2 Instances are:  
