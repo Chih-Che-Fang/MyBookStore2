@@ -327,7 +327,7 @@ We must choose one of web server framework to implement the servers, the pros of
 
 The cons of Django/Struts are:  
 1. Configuration is complicated than Flask  
-2. Lack of built-in development server and harder to devug  
+2. Lack of built-in development server and harder to debug  
 
 We finally choose to use Flask as our server implementation as it is easier to configure and have several built-in server template. It support multi-thread without any effort. As this project is small, we don't suffer from scability and security problem.   
 
@@ -345,6 +345,7 @@ We finally chose Synchronous HTTP Request since it makes the whole design in cli
 **Thread Pool V.S Dynamically Creating New Thread**  
 To handle client HTTP requests, we can choose either to launch a new thread every time or use the existing thread pool to allocate thread to message processing task. The pros of Thread Pool is:  
 1.Shorter response time of client request since we don't need to create new thread dynamically  
+
 The cons are:  
 1. Higher complexity of system since we need to handle the creation and recycle of threads  
 2. Higher memory usage since we must maintain a certain amount of thread  
@@ -381,4 +382,5 @@ See [README.md #How to run?](https://github.com/Chih-Che-Fang/MyBookStore/blob/m
 # Possible Improvements and Extensions
 
 1. We didn't implement the fault tolerance. However, since catalog & order server stored all execuated log and initialization informtion, we can, in the future, implement a mechanisim reasily to recover books' status after a machine recovered from a fail  
-2. We are using the thread per request model currently. Therefore, we could optimize averaged response latency time by using thread pool since each request doesn't need to wait for the launch time of a thread  
+2. Currently we only have 1 machine for each type of server, but as client increases, the server has slower response time. Therefore, in the fututre, we can add more replicated server for each type of server and add a load balancer to handle concurrently client reuqests. In this way, we can scale this bookstore to a large number of customers.
+3. We are using the thread per request model currently. Therefore, we could optimize averaged response latency time by using thread pool since each request doesn't need to wait for the launch time of a thread  
