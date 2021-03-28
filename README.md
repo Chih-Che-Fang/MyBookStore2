@@ -20,14 +20,14 @@ test5: Run above test cases, but deploy servers on three remote EC2 machines, wi
 2. **[Test on Single Local Server]** Perform **run_local_test.bat** on Windows OS (With Docker installed), and will automatically build docker image, run docker image and deploy client and all servers in a container. Client then will perform test1 - test4 on frontend server automatically.
 **[Test on Multiple Remote Servers(EC2)]** Perform **run_distributed_test.bat** on Windows OS (With Docker installed, AWS Cli set and configured, must have access to your own AWS account), and will automatically careat security group, key pair, and multiple EC2 instances, then migrate the code/config to remote server, build docker image, and run one of the 3 type bookstore server (frontend/catalog/order) on remote machines. Finally, the sciprt will deploy the client in local machine's container and client will perform test1 - test4 on remote servers.  
 3. See the testing result on console, it will tell you what client requet each server received, and the server's response, you should be able to see the logs like:  
-Client1: Send request http://127.0.0.1:8000/buy?item_number=2
-Client2: Send request http://127.0.0.1:8000/buy?item_number=2
-Client3: Send request http://127.0.0.1:8000/buy?item_number=2
-Client4: Send request http://127.0.0.1:8000/buy?item_number=2
-Client1: Get response  {'result': 'Success'}
-Client2: Get response  {'result': 'Success'}
-Client3: Get response  {'result': 'Success'}
-Client4: Get response  {'result': 'Failed'}
+Client1: Send request http://127.0.0.1:8000/buy?item_number=2  
+Client2: Send request http://127.0.0.1:8000/buy?item_number=2  
+Client3: Send request http://127.0.0.1:8000/buy?item_number=2  
+Client4: Send request http://127.0.0.1:8000/buy?item_number=2  
+Client1: Get response  {'result': 'Success'}  
+Client2: Get response  {'result': 'Success'}  
+Client3: Get response  {'result': 'Success'}  
+Client4: Get response  {'result': 'Failed'}  
 
 
 Fianlly, the distributed servers will output all server log to "output" folder  
