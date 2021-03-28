@@ -150,25 +150,23 @@ We terminate all EC2 instances, delete the security group, and key pairs created
 **run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying corresponding server, on remote servers. Next, deploy a client on local machine and perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
 
 ## Test Output (Log)  
-We store all testing output under the output folder and use them to validate the correctness of each test case. For local testing,
-
-SellerID:1 start to sell fish  
-BuyerID:0 start to buy fish  
-SellerID:1 start to sell fish  
-BuyerID:0 bought fish from 1  
-BuyerID:0 start to buy fish  
-SellerID:1 start to sell boars  
-BuyerID:0 bought fish from 1  
-BuyerID:0 start to buy fish  
+We store all testing output under the output folder and use them to validate the correctness of each test case. There are three types of logs:  
+catalog_log: store all execuated transaction on catalog server  
+order_log: store all execuated transaction on order server  
+client_log: store all execuated HTTP request and response log for all concurrent clients  
 
 ## Verification of All Test Cases  
 **Test1 output:**  
-BuyerID:0 start to buy fish  
-SellerID:1 start to sell fish  
-SellerID:1 start to sell fish  
-BuyerID:0 bought fish from 1  
-BuyerID:0 start to buy salt  
-**Result:** Pass, buyer 1 successfully buy out fish from seller 1  
+**Client Log:**
+Client0: Send request http://127.0.0.1:8000/search?topic=distributed+systems
+Client0: Get response {'result': [{'item_number': '1', 'title': 'How to get a good grade in 677 in 20 minutes a day'}, {'item_number': '2', 'title': 'RPCs for Dummies'}]}
+Client0: Send request http://127.0.0.1:8000/search?topic=graduate+school
+Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art of Surviving Graduate School'}, {'item_number': '4', 'title': 'Cooking for the Impatient Graduate Student'}]}
+
+**Catalog Server Log:**  
+query_by_topic,distributed systems  
+query_by_topic,graduate school  
+**Result:** Pass, client correctly find all books related to topic "distributed system" and "graduate school". The catalog server correctly stored the two search operation.    
 
 **Test2 output:**  
 BuyerID:0 start to buy fish  
