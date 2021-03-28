@@ -124,11 +124,11 @@ We dynamically create security group and open HTTP port 8000-8002, 22 for server
 ### Dynamic server creation
 We have pr-created Amazon AMI image that has Docker installed. We dynamically create a security group that allows HTTP REST API access permission. We create an EC2 instance from the pre-created AMI image and attached it with the created security group. We tag each EC2 instance with a tag MyBazaar32144321" so that we can later access them and release them.
 
-### Dynamic code mgration and compliation
+### Dynamic code mgration and docker image build-up
 We migrate the latest code to the remote server using SCP and invoke script ec2_setup.sh to build the docker image, run the docker image, and start the corresponding server on that EC2 machine
 
-### Run test 1 ~ test 4
-
+### Perform test 1 ~ test 4
+We automatically build a docker image for client and run the client in a container. Then the client can launch multiple threads and perform multiple HTTP request to frontend server. That is, the client will run test1 ~ test4 in order and send requests to frontend server.
 
 ### Gather test output(log) for validation
 We use SCP to pull test output under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog_log and order_log, which respresent catalog server's log and order server's log respectively.
@@ -138,16 +138,16 @@ We terminate all EC2 instances, delete the security group, and key pairs created
 
 # Validation & Test
 ## Test Cases
-**Test1 (Milestone1):** Assign one peer to be a buyer of fish and another to be a seller of fish. Ensure that all fish is sold and restocked forever.  
-**Test2 (Milestone1):** Assign one peer to be a buyer of fish and another to be a seller of boar. Ensure that nothing is sold.  
-**Test3 (Milestone1):** Randomly assign buyer and seller roles. Ensure that items keep being sold throughout  
-**Test4 (Milestone2, Simulation of Race Condition):** One seller of boar, 3 buyers of boars, the remaining peers have no role. Fix the neighborhood structure so that buyers and sellers are 2-hop away in the peer-to-peer overlay network. Ensure that all items are sold and restocked and that all buyers can buy forever. **(This case also simulate race condition)**  
-**Test5 (Milestone3):** Run test1~test4 again, but deploy peers on different AWS EC2 instances.  
+**test1 (Intermediate Milestone):** Perform search methods correctly.
+**test2 (Intermediate Milestone):** Perform lookup methods correctly.
+**test3 (Intermediate Milestone):** Buy operations run and update the stock of the item correctly
+**test4 (Intermediate Milestone):** (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
+**Test5 (Final Milestone):** Run test1~test4 again, but deploy peers on different AWS EC2 instances.  
 
 ## Automatic Test Scripts
-**run_local_test.bat:** This script will automatically compile the code and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
+**run_local_test.bat:** This script will automatically start frontend, catalog, and order server on local mahcine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
 
-**run_distributed_test.bat:**  This script will automatically create Amazon EC2 instances, migrating & compiling the code and config file to remote servers, deploying peers on the remote server, perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Multiple Server Deployment".  
+**run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, deploying peers on the remote server, perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Multiple Server Deployment".  
 
 ## Test Output (Log)  
 We store all testing output under the output folder and use them to validate the correctness of each test case. For local testing, each file is named with testID.out (Ex. test4.out). It will print all peers' logs on that machine, like which buyer bought a product or which seller sold a product. For distributed testing on different servers, we store all remote server's output under output/IP address (Ex.output/127.35.6.1). In this way, we know which test and machine this log/output belong to and easy to debug. Here is one output example of test1:  
