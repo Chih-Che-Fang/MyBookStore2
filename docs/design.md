@@ -140,7 +140,7 @@ We terminate all EC2 instances, delete the security group, and key pairs created
 ## Test Cases
 **test1 (Intermediate Milestone):** Perform search methods correctly.
 **test2 (Intermediate Milestone):** Perform lookup methods correctly.
-**test3 (Intermediate Milestone):** Buy operations run and update the stock of the item correctly
+**test3 (Intermediate Milestone):** Run Buy operations and update the stock of the item correctly
 **test4 (Intermediate Milestone):** (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
 **Test5 (Final Milestone):** Run test1~test4 again, but deploy peers on different AWS EC2 instances.  
 
@@ -156,7 +156,7 @@ order_log: store all execuated transaction on order server
 client_log: store all execuated HTTP request and response log for all concurrent clients  
 
 ## Verification of All Test Cases  
-### Test1 output:  
+### Test1 output: Perform search methods correctly  
 **Client Log:**  
 Client0: Send request http://127.0.0.1:8000/search?topic=distributed+systems  
 Client0: Get response {'result': [{'item_number': '1', 'title': 'How to get a good grade in 677 in 20 minutes a day'}, {'item_number': '2', 'title': 'RPCs for Dummies'}]}  
@@ -166,21 +166,40 @@ Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art
 **Catalog Server Log:**    
 query_by_topic,distributed systems  
 query_by_topic,graduate school  
+
 **Result:** Pass, client correctly find all books related to topic "distributed system" and "graduate school". The catalog server correctly stored the two search operation.    
 
-### Test2 output:   
-BuyerID:0 start to buy fish  
-SellerID:1 start to sell boars  
+### Test2 output: Perform lookup methods correctly
+**Client Log:**  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=1  
+Client0: Get response {'result': {'cost': '10', 'item_number': '1', 'stock': 1000, 'title': 'How to get a good grade in 677 in 20 minutes a day', 'type': 'distributed systems'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=2  
+Client0: Get response {'result': {'cost': '20', 'item_number': '2', 'stock': 1000, 'title': 'RPCs for Dummies', 'type': 'distributed systems'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=3  
+Client0: Get response {'result': {'cost': '5', 'item_number': '3', 'stock': 1000, 'title': 'Xen and the Art of Surviving Graduate School', 'type': 'graduate school'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=4  
+Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 1000, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}  
+
+**Catalog Server Log:** 
+query_by_item,1  
+query_by_item,2  
+query_by_item,3  
+query_by_item,4  
+
+**Result:** Pass, client correctly get detailed information of book item_number 1 ~ 4. The catalog server correctly stored the 4 lookup operation.  
+
+### Test3 output: Run Buy operations and update the stock of the item correctly
+
+Client0: Send request http://127.0.0.1:8000/buy?item_number=1
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=1
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=3
+
 **Result:** Pass, buyer 1 buy nothing, seller 1 sells nothing  
 
 
-### Test3 output:  
-BuyerID:0 start to buy boars  
-BuyerID:1 start to buy salt  
-**Result:** Pass, buyer 1 buy nothing, seller 1 sells nothing  
-
-
-### Test4 output:   
+### Test4 output: (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
 SellerID:1 start to sell boars  
 PeerID:5 with no role start to work  
 BuyerID:2 start to buy boars  
