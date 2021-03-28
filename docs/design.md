@@ -9,14 +9,14 @@ Authors: Chih-Che Fang
 
 ## Class Discription  
 - **frontend_server:** frontend server that process and dispatch client's request  
-- **catalog_server:** catalog server that host book information and is able to serve update, query_by_item, query_by_topic request from frontend and order server  
+- **catalog_server:** catalog server that host book information and can serve update, query_by_item, query_by_topic request from frontend and order server  
 - **order_server:** order server that process frontend server's buy request  
 - **SystemMonitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
-- **Client:** A class used to perform multiple HTTP request to frontend server  
+- **Client:** A class used to perform multiple HTTP requests to the frontend server  
 - **Book:** A class used to store all book's detailed information like cost, title, topic, ...etc  
 - **Logger:** A class used to output log to files  
 
-## Operation Discription:  
+## Operation Description:  
 - The **front end server** supports three operations:  
 **search(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
 **lookup(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
@@ -28,7 +28,7 @@ Authors: Chih-Che Fang
 **update(item_number, cost, stock_update)**: Allows client to update cost or update the stock of book  
 
 - The **order server** supports three operations:  
-**buy(item_number)**: Allows the user to buy a book with certain item number
+**buy(item_number)**: Allows the user to buy a book with a certain item number
 
 ## Sequence Diagram
 **Client/Server Interaction Workflow**  
@@ -38,19 +38,19 @@ Authors: Chih-Che Fang
 
 # How it Works
  ## Bootstraping & Communication
-I used Flask to implement each server. I start frontend server, catalog server, order server in sequence and finally launch client to send HTTP request to frontend server.
-Each Client reprensent a thread so that multiple client can request a single frontend server concurrently. Flask server support multi-threaded so that the server will launch a new thread for processing each new client request. Single Client request is implment as a synchronous request and will wait for frontend server's response.  When frontend server receive client's request, it just lauch a new HTTP request to the corresponding server.
+I used Flask to implement each server. I start the frontend server, catalog server, order server in sequence, and finally launch the client to send an HTTP request to the frontend server.
+Each Client represents a thread so that multiple clients can request a single frontend server concurrently. Flask server supports multi-threaded so that the server will launch a new thread for processing each new client request. The single Client request is implemented as a synchronous request and will wait for the frontend server's response.  When the frontend server receives the client's request, it just launches a new HTTP request to the corresponding server.
 
-Servers can know each other's IP address and port by reading config file. Catalog server will read from catalog_log to init the status of books. Book class is used to store all book's detailed information. Catalog and order server will output executed operation to catalog_log and order_log under "output" folder. Initialization log has the following format:  
+Servers can know each other's IP addresses and ports by reading the config file. The catalog server will read from catalog_log to init the status of books. Book class is used to store all book's detailed information. Catalog and order server will output executed operation to catalog_log and order_log under the "output" folder. Initialization log has the following format:  
 
 Format = **[Operation item_number stock cost Count topic title]**  
 
-**Operation:** Indicate the execuated operation  
-**item_number:** Indeicate the book's item number  
+**Operation:** Indicate the executed operation  
+**item_number:** Indicate the book's item number  
 **stock:** Initial stock of the book  
 **cost:** The cost of the book  
 **topic:** The topic of the book  
-**title:** Indicate the book title  
+**Title:** Indicate the book title  
 
 Here is one example of book initialization information that a catalog used to init book status:  
 [init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day]  
@@ -70,7 +70,7 @@ request: [SERVER_IP:8000/buy/item_number], Ex. http://127.0.0.1/buy?item_number=
 response: {'result': result}, Ex. {'result': Success}  
 
 ## Global IP/Port Address Configuration
-To allow servers to communicate with each other, we need to give them other peer's addresses and port, we use a file - config to record the information.
+To allow servers to communicate with each other, we need to give them other peer's addresses and ports, we use a file - config to record the information.
 Format = **[Type, IPAddress:Port]**  
 
 **Type:** Type of the server
@@ -83,12 +83,12 @@ order,127.0.0.1:8082
  
 
 ## Concurency / Race Condition Protection
-All books' information is stored in catalog server's memeory and shared by multiple threads concurrently. When a flask server receives a new client request, it will launch a new thread to process the message.  Therfore, when updating and read the book's information, we used a lock to make sure the whole operation is atomic in all server. For example, buy request from order server will check the book's stock, and if there is enough stock, the server will then decrease the stock by 1. Otherwise, the buy operation should reutrn "fail" rsult. Consider the following error case:  
+All books' information is stored in the catalog server's memory and shared by multiple threads concurrently. When a flask server receives a new client request, it will launch a new thread to process the message.  Therefore, when updating and read the book's information, we used a lock to make sure the whole operation is atomic in all servers. For example, a buy request from the order server will check the book's stock, and if there is enough stock, the server will then decrease the stock by 1. Otherwise, the buy operation should return a "fail" result. Consider the following error case:  
 
 client 1 queried the stock of book item_number 1 is 1  
 client 2 queried the stock of book item_number 1 is 1  
 client 1 update book stock to 0  
-client 2 update book stock to 0  
+client 2 updated book stock to 0  
 
 To prevent the race condition mentioned above, we used a lock for buy operation:  
 
@@ -102,7 +102,7 @@ client 2 buy failed
 releaseLock()  
 
 ## Server Output Log
-We store the execuated operation with file name of catalog_log, order_log in catalog server & order server respectively:  
+We store the executed operation with a file name of catalog_log, order_log in catalog server & order server respectively:  
 Format = **[Operation args]**  
 
 **Operation:** Execuated operation name  
@@ -114,25 +114,25 @@ Here is one example of execuated operation stored by catalog server:
 
 ## Automatic Distributed Server Deployment
 ### 1.Pre-created AMI image  
-We already create a Amazon Linux2 AMI image with Docker installed and made it public to access, later we can create new EC2 instances from the image, it provides us a machine that is able to build and run docker image
+We already create an Amazon Linux2 AMI image with Docker installed and made it public to access, later we can create new EC2 instances from the image, it provides us a machine that can build and run a docker image
 
 ### 2.Dynamic creation of key pair
-We will create a key pair in AWS account for latter access of EC2 instances  
+We will create a key pair in the AWS account for later access to EC2 instances  
 
 ### 3.Dynamic security group
-We dynamically create security group and open HTTP port 8000-8002, 22 for servers
+We dynamically create a security group and open HTTP port 8000-8002, 22 for servers
 
 ### 4.Dynamic server creation
 We have pr-created Amazon AMI image that has Docker installed. We dynamically create a security group that allows HTTP REST API access permission. We create an EC2 instance from the pre-created AMI image and attached it with the created security group. We tag each EC2 instance with a tag MyBazaar32144321" so that we can later access them and release them.
 
-### 5.Dynamic code mgration and docker image build-up
+### 5.Dynamic code migration and docker image build-up
 We migrate the latest code to the remote server using SCP and invoke script ec2_setup.sh to build the docker image, run the docker image, and start the corresponding server on that EC2 machine
 
 ### 6.Perform test 1 ~ test 4
-We automatically build a docker image for client and run the client in a container. Then the client can launch multiple threads and perform multiple HTTP request to frontend server. That is, the client will run test1 ~ test4 in order and send requests to frontend server.
+We automatically build a docker image for the client and run the client in a container. Then the client can launch multiple threads and perform multiple HTTP requests to the frontend server. That is, the client will run test1 ~ test4 in order and send requests to the frontend server.
 
 ### 7.Gather test output(log) for validation
-We use SCP to pull test output under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog_log and order_log, which respresent catalog server's log and order server's log respectively.
+We use SCP to pull test output under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog_log and order_log, which represent the catalog server's log and order server's log respectively.
 
 ### 8.Release AWS resource
 We terminate all EC2 instances, delete the security group, and key pairs created previously at the end of the test
@@ -142,19 +142,19 @@ We terminate all EC2 instances, delete the security group, and key pairs created
 - **test1 (Intermediate Milestone):** Perform search methods correctly.  
 - **test2 (Intermediate Milestone):** Perform lookup methods correctly.  
 - **test3 (Intermediate Milestone):** Run Buy operations and update the stock of the item correctly  
-- **test4 (Intermediate Milestone):** (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
+- **test4 (Intermediate Milestone):** (Race Condition) 4 clients buy the book "RPCs for Dummies" that only has 3 stock concurrently, only 3 clients can buy the book  
 - **Test5 (Final Milestone):** Run test1~test4 again, but deploy servers on different AWS EC2 instances.  
 
 ## Automatic Test Scripts
-- **run_local_test.bat:** This script will automatically start frontend, catalog, and order server on local mahcine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
+- **run_local_test.bat:** This script will automatically start the frontend, catalog, and order server on the local machine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
 
-- **run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying corresponding server, on remote servers. Next, deploy a client on local machine and perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
+- **run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying the corresponding server, on remote servers. Next, deploy a client on a local machine and perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
 
 ## Test Output (Log)  
 We store all testing output under the output folder and use them to validate the correctness of each test case. There are three types of logs:  
-- catalog_log: store all execuated transaction on catalog server  
-- order_log: store all execuated transaction on order server  
-- client_log: store all execuated HTTP request and response log for all concurrent clients  
+- catalog_log: store all executed transaction on the catalog server  
+- order_log: store all executed transaction on the order server  
+- client_log: store all executed HTTP request and response log for all concurrent clients  
 
 ## Verification of All Test Cases  
 ### Test1 output: Perform search methods correctly  
@@ -168,7 +168,7 @@ Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art
 query_by_topic,distributed systems  
 query_by_topic,graduate school  
 
-**Result:** Pass, client correctly find all books related to topic "distributed system" and "graduate school". The catalog server correctly stored the two search operation.    
+**Result:** Pass, client correctly find all books related to the topic "distributed system" and "graduate school". The catalog server correctly stored the two search operations.    
 
 ### Test2 output: Perform lookup methods correctly
 **Client Log:**  
@@ -187,7 +187,7 @@ query_by_item,2
 query_by_item,3  
 query_by_item,4  
 
-**Result:** Pass, client correctly get detailed information of book item_number 1 ~ 4. The catalog server correctly stored the 4 lookup operation.  
+**Result:** Pass, client correctly get detailed information of book item_number 1 ~ 4. The catalog server correctly stored the 4 lookup operations.  
 
 ### Test3 output: Run Buy operations and update the stock of the item correctly
 **Client Log:**  
@@ -214,10 +214,10 @@ bought book 1
 bought book 1  
  
 
-**Result:** Pass, book item_number 1 only has 3 stock. First of 3 client's buy request should success and the last one should fail. The order server correctly stored only the three succeded buy operation. The catalog server correctly log the 3 executed query and 3 update request.
+**Result:** Pass, book item_number 1 only has 3 stock. The first of 3 client's buy requests should succeed and the last one should fail. The order server correctly stored only the three succeded buy operation. The catalog server correctly logs the 3 executed queries and 3 update requests.
 
 
-### Test4 output: (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
+### Test4 output: (Race Condition) 4 clients buy the book "RPCs for Dummies" that only has 3 stock concurrently, only 3 clients can buy the book 
 **Client Log:**  
 Client1: Send request http://127.0.0.1:8000/buy?item_number=2  
 Client2: Send request http://127.0.0.1:8000/buy?item_number=2  
@@ -243,7 +243,7 @@ bought book 2
 bought book 2    
  
 
-**Result:** Pass, book item_number 2 only has 3 stock. First of 3 concurrent client's buy request should return success and the last one should return fail. The order server correctly stored only the 3 succeded buy operation. The catalog server correctly log the 4 executed query and 3 update request.  
+**Result:** Pass, book item_number 2 only has 3 stock. The first of 3 concurrent client's buy requests should return success and the last one should return fail. The order server correctly stored only the 3 succeded buy operation. The catalog server correctly logs the 4 executed queries and 3 update requests.  
 
 ### Test5 output: Run test1~test4 again, but deploy servers on different AWS EC2 instances.  
 **Result:** Pass, All test1 ~ test 4 log is the same as run in local machine
@@ -257,7 +257,7 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 
 PS: all response time sampled from 1000 requests  
 
-- Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle with client requests, server still need time to process request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.
+- Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle client requests, the server still needs time to process the request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.
 
 ## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
 **Breakdown of Search Operation:**  (Flow: Client -> frontend -> catalog)  
@@ -277,8 +277,8 @@ PS: all response time is calculated from 1000 requests
 
 From the result, we see:
 - Most of the time spent on the route between Client and Frontend server  
-- As concurrent client increases, the averaged response time also increase. The reason might be that oo much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases (Even though all servers adopted multi-thread to handle with client requests, server still need time to process requests and launch a new thread).  
-- Averaged response time between Catalog server and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers is delpoyed on AWS EC2 instances, the physical distance between Catalog server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less.  
+- As concurrent client increases, the averaged response time also increases. The reason might be that too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the average time increases (Even though all servers adopted multi-thread to handle with client requests, the server still need time to process requests and launch a new thread).  
+- Averaged response time between the Catalog server and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers are deployed on AWS EC2 instances, the physical distance between the Catalog server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less.  
 
 <br />
 <br />
@@ -311,9 +311,9 @@ PS: all response time is calculated from 1000 requests
 
 From the result, we see:
 - Most of the time spent on the route between Client and Frontend server  
-- From order server's perspective, averaged response time of "Update" operation is longer than "Query by Item Number". Also, as concurrent client increases, the operation time also increases. The reason might be that we used lock in "update" operation but not in "Query by Item Number". As client increases, concurrent will compete for the lock and therefore increase the response time of "Update" operation  
-- As concurrent client increases, the averaged response time also increase. The reason might be that oo much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases (Even though all servers adopted multi-thread to handle with client requests, server still need time to process requests and launch a new thread).  
-- Averaged response time between Catalog server, Order Server, and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers is delpoyed on AWS EC2 instances, the physical distance between Catalog/Order server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less. 
+- From the order server's perspective, an average response time of the "Update" operation is longer than "Query by Item Number". Also, as concurrent client increases, the operation time increases. The reason might be that we used a lock in the "update" operation but not in "Query by Item Number". As client increases, concurrent will compete for the lock and therefore increase the response time of the "Update" operation  
+- As concurrent client increases, the averaged response time also increases. The reason might be that too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the average time increases (Even though all servers adopted multi-thread to handle with client requests, the server still need time to process requests and launch a new thread).  
+- Averaged response time between Catalog server, Order Server, and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers are deployed on AWS EC2 instances, the physical distance between the Catalog/Order server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less. 
 <br />
 <br />
 <br />
@@ -332,7 +332,7 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 
 PS: all response time is calculated from 1000 requests  
 
-From the result, we see the same results as **Search** operation, please check the comment in **Search** operation section. Also, we observed "Search" request is slightly slower than "Lookup" request but slightly faster than "buy" requests (As buy request cost more round-trip time bewteen remote servers).  
+From the result, we see the same results as **Search** operation, please check the comment in **Search** operation section. Also, we observed "Search" request is slightly slower than the "Lookup" request but slightly faster than "buy" requests (As buy request cost more round-trip time between remote servers).  
 
 <br />
 <br />
@@ -340,7 +340,7 @@ From the result, we see the same results as **Search** operation, please check t
 
 # Design Tradeoffs
 **Flask  V.S Django/Struts**  
-We must choose one of web server framework to implement the servers, the pros of Django/Struts framework are:  
+We must choose one of the web server framework to implement the servers, the pros of Django/Struts framework are:  
 1. It is a versatile framework and can be used for any website (social network, news site, content management, and more) with content in any format like HTML, XML, JSON, and more. It works in tandem with any client-side framework.  
 2. It is a secure framework and automatically manages standard security features like user account management, transaction management, cross-site request forgery, clickjacking, and more.  
 3. It is scalable and maintainable. Django follows design patterns and principles to reuse and maintain the code.  
@@ -349,18 +349,18 @@ The cons of Django/Struts are:
 1. Configuration is complicated than Flask  
 2. Lack of built-in development server and harder to debug  
 
-We finally choose to use Flask as our server implementation as it is easier to configure and have several built-in server template. It support multi-thread without any effort. As this project is small, we don't suffer from scability and security problem.   
+We finally choose to use Flask as our server implementation as it is easier to configure and have several built-in server templates. It supports multi-thread without any effort. As this project is small, we don't suffer from scalability and security problems.   
 
-**Pessimistic Concurrency Control (Lock) V.S Optimistic Concurency Control (Transaction Validation Mechanism)**  
-We need concurrency control to make sure transaction is consistent and atomic and prevent race condition happen. The pros of using Pessimistic Concurrency Control (Lock) is:    
+**Pessimistic Concurrency Control (Lock) V.S Optimistic Concurrency Control (Transaction Validation Mechanism)**  
+We need concurrency control to make sure that transaction is consistent and atomic and prevent race condition happen. The pros of using Pessimistic Concurrency Control (Lock) is:    
 1. Don't need to worry about transaction starvation  
-2. Don't need to re-run the transaction and implement complicated transaction check mechansim  
+2. Don't need to re-run the transaction and implement complicated transaction check mechanism  
 
 The cons of Pessimistic Concurrency Control (Lock) is:  
 1. Potential deadlock may happen
 2. Acquiring/releasing lock cause extra overhead and may hurt efficiency
 
-We finally chose Pessimistic Concurrency Control (Lock) since race condition happen too frequently when concurrent client > 5. By doing so, we skip starvation and re-run problems. It also makes the design simplier. Besides, since only catalog server use the lock, it is easy to skip deadlock problem.  
+We finally chose Pessimistic Concurrency Control (Lock) since race conditions happen too frequently when concurrent clients> 5. By doing so, we skip starvation and re-run problems. It also makes the design simpler. Besides, since only the catalog server uses the lock, it is easy to skip the deadlock problem.  
 
 **Thread Pool V.S Dynamically Creating New Thread**  
 To handle client HTTP requests, we can choose either to launch a new thread every time or use the existing thread pool to allocate thread to message processing task. The pros of Thread Pool is:  
@@ -371,7 +371,7 @@ The cons are:
 2. Higher memory usage since we must maintain a certain amount of thread  
 3. Hard to debug  
 
-We finally choose Dynamically Creating New Thread since the HTTP thread doesn't have too many data attributes and creating is fast. Given that performance doesn't have too much difference and we want to simplify our design, we can dynamically creating a new thread to handle HTTP client requests. It also help save memeory usage.    
+We finally choose Dynamically Creating New Thread since the HTTP thread doesn't have too many data attributes and creating is fast. Given that performance doesn't have too much difference and we want to simplify our design, we can dynamically creating a new thread to handle HTTP client requests. It also helps save memory usage.    
 
 **Dynamic Creation of EC2 Instances V.S Hot Stand-By EC2 Instances**  
 When launching multiple servers for server deployment, we must choose between whether to dynamically creating new instances or deploy peers on hot standby servers. The pros of dynamic creation of EC2 Instances are:  
@@ -401,6 +401,6 @@ See [README.md #How to run?](https://github.com/Chih-Che-Fang/MyBookStore/blob/m
 
 # Possible Improvements and Extensions
 
-1. We didn't implement the fault tolerance. However, since catalog & order server stored all execuated log and initialization informtion, we can, in the future, implement a mechanisim reasily to recover books' status after a machine recovered from a fail  
-2. Currently we only have 1 machine for each type of server, but as client increases, the server has slower response time. Therefore, in the fututre, we can add more replicated server for each type of server and add a load balancer to handle concurrently client reuqests. In this way, we can reduce averaged response time and scale this bookstore to a large number of customers.
+1. We didn't implement the fault tolerance. However, since the catalog & order server stored all executed log and initialization information, we can, in the future, implement a mechanism easily to recover books' status after a machine recovered from a fail  
+2. Currently we only have 1 machine for each type of server, but as the client increases, the server has a slower response time. Therefore, in the future, we can add more replicated servers for each type of server and add a load balancer to handle concurrently client requests. In this way, we can reduce averaged response time and scale this bookstore to a large number of customers.
 3. We are using the thread per request model currently. Therefore, we could optimize averaged response latency time by using thread pool since each request doesn't need to wait for the launch time of a thread  
