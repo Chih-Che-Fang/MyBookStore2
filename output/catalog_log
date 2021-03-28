@@ -1,0 +1,27 @@
+init,1,1000,10,distributed systems,How to get a good grade in 677 in 20 minutes a day
+init,2,1000,20,distributed systems,RPCs for Dummies
+init,3,1000,5,graduate school,Xen and the Art of Surviving Graduate School
+init,4,1000,15,graduate school,Cooking for the Impatient Graduate Student
+
+query_by_topic,distributed systems
+query_by_topic,graduate school
+query_by_item,1
+query_by_item,1
+update,1,na,-1
+query_by_item,2
+query_by_item,1
+update,1,na,-1
+query_by_item,3
+query_by_item,1
+update,1,na,-1
+query_by_item,4
+query_by_item,1
+update,1,na,-1
+query_by_item,2
+query_by_item,2
+update,2,na,-1
+query_by_item,2
+update,2,na,-1
+update,2,na,-1
+query_by_item,2
+update,2,na,-1

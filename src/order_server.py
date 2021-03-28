@@ -4,6 +4,7 @@ from flask import Flask, redirect, jsonify, request
 import requests
 import time
 from performance_monitor import Monitor
+from logger import Logger
 
 #Create the book store order server instance
 app = Flask(__name__)
@@ -12,6 +13,10 @@ server_addr = {}
 #Create Performance monitors to trace average response time
 q_by_item_monitor = Monitor('Order Server', 'query_by_item')
 update_monitor = Monitor('Order Server', 'update')
+
+#logger used to store log
+logger = Logger('./output/order_log')
+
 
 #Process buy request
 #input: book item number, book cost, update number for the book item
@@ -40,19 +45,9 @@ def buy():
 	
 	#if buy operation executed, log trasnaction
 	if res['result'] == 'Success':
-		log_transaction('bought book {}'.format(item_number))
+		logger.log('bought book {}'.format(item_number))
 	
 	return res
-
-#Log executed transaction or request
-#input: log message
-#output: None
-def log_transaction(msg):
-	print(msg)
-	f = open('./output/order_log', 'a')
-	f.write(msg)
-	f.write('\n')
-	f.close()
 	
 #Set a global server address reference
 #input: global address config file name

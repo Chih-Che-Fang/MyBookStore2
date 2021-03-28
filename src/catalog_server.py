@@ -2,6 +2,7 @@ import io
 import json
 from flask import Flask, redirect, jsonify, request
 import threading
+from logger import Logger
 
 #Create the book store catalog end server instance
 app = Flask(__name__)
@@ -11,6 +12,8 @@ books = {}
 #lock to prevent race condition of update request
 lock = threading.Lock()
 
+#logger used to store log
+logger = Logger('./output/catalog_log')
 
 #book data structure
 class Book(object):
@@ -58,7 +61,7 @@ def query_by_topic():
 			book_lst.append(b.get_title())
 	
 	#log transaction
-	log_transaction('query_by_topic,{}'.format(topic))
+	logger.log('query_by_topic,{}'.format(topic))
 	return jsonify({'result': book_lst})
 
 #Perform inference request 
@@ -70,7 +73,7 @@ def query_by_item():
 	print('Catalog Server: Receive query_by_item request where item_number=', item_number)
 	
 	#log transaction
-	log_transaction('query_by_item,{}'.format(item_number))
+	logger.log('query_by_item,{}'.format(item_number))
 	return jsonify({'result': books[item_number].get_info()})
 
 #Process update request
@@ -98,19 +101,9 @@ def update():
 	
 	#if operation executed, log trasnaction
 	if(res['result'] == 'Success'):
-		log_transaction('update,{},{},{}'.format(book.item_number, cost, stock))
+		logger.log('update,{},{},{}'.format(book.item_number, cost, stock))
 	
 	return  jsonify(res)
-
-#Log executed transaction or request
-#input: log message
-#output: None
-def log_transaction(msg):
-	print(msg)
-	f = open('./output/catalog_log', 'a')
-	f.write(msg)
-	f.write('\n')
-	f.close()
 	
 #Set initialize book store satus
 #input: catalog log file name

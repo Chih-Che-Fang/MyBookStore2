@@ -30,5 +30,6 @@ timeout 20
 REM pull log from catalog & order server in the container
 docker cp mybookstore32144321:/usr/src/MyBookStore/output/catalog_log .\output
 docker cp mybookstore32144321:/usr/src/MyBookStore/output/order_log .\output
+docker cp mybookstore32144321:/usr/src/MyBookStore/output/client_log .\output
 
 pause
