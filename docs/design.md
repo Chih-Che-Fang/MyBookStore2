@@ -113,7 +113,7 @@ Here is one example of execuated operation stored by catalog server:
 
 ## Automatic Multiple Server Deployment
 ### Pre-created AMI image  
-We already create a Amazon Linux2 AMI image with Docker installed and made it public to access, later we can create new EC2 instances from the image, it provides us a machine that is able to compile the code and run the system  
+We already create a Amazon Linux2 AMI image with Docker installed and made it public to access, later we can create new EC2 instances from the image, it provides us a machine that is able to build and run docker image
 
 ### Dynamic creation of key pair
 We will create a key pair in AWS account for latter access of EC2 instances  
@@ -352,5 +352,5 @@ See [README.md #How to run?](https://github.com/Chih-Che-Fang/MyBazaar#how-to-ru
 
 # Possible Improvements and Extensions
 
-1. We assume the id of hosts has to be ascending sequence, otherwise it will cause errors.
-2. We are using the thread per request model currently we could be optimized by using thread pool or even coroutine.
+1. We didn't implement the fault tolerance. However, since catalog & order server stored all execuated log and initialization informtion, we can, in the future, implement a mechanisim reasily to recover books' status after a machine recovered from a fail
+2. We are using the thread per request model currently. Therefore, we could be optimized by using thread pool to improve response latency.
