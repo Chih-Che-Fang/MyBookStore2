@@ -8,26 +8,26 @@ Authors: Chih-Che Fang
 ![UML diagram](./UML.png "UML")
 
 ## Class Discription  
-**frontend_server:** frontend server that process and dispatch client's request  
-**catalog_server:** catalog server that host book information and is able to serve update, query_by_item, query_by_topic request from frontend and order server  
-**order_server:** order server that process frontend server's buy request  
-**SystemMonitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
-**Client:** A class used to perform multiple HTTP request to frontend server  
-**Book:** A class used to store all book's detailed information like cost, title, topic, ...etc  
-**Logger:** A class used to output log to files  
+- **frontend_server:** frontend server that process and dispatch client's request  
+- **catalog_server:** catalog server that host book information and is able to serve update, query_by_item, query_by_topic request from frontend and order server  
+- **order_server:** order server that process frontend server's buy request  
+- **SystemMonitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
+- **Client:** A class used to perform multiple HTTP request to frontend server  
+- **Book:** A class used to store all book's detailed information like cost, title, topic, ...etc  
+- **Logger:** A class used to output log to files  
 
 ## Operation Discription:  
-The **front end server** supports three operations:  
+- The **front end server** supports three operations:  
 **search(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
 **lookup(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
 **buy(item_number)**: Allows client to buy a book with the item number  
 
-The **catalog server** supports three operations:  
+- The **catalog server** supports three operations:  
 **query_by_topic(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
 **query_by_item(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
 **update(item_number, cost, stock_update)**: Allows client to update cost or update the stock of book  
 
-The **order server** supports three operations:  
+- The **order server** supports three operations:  
 **buy(item_number)**: Allows the user to buy a book with certain item number
 
 ## Sequence Diagram
@@ -152,9 +152,9 @@ We terminate all EC2 instances, delete the security group, and key pairs created
 
 ## Test Output (Log)  
 We store all testing output under the output folder and use them to validate the correctness of each test case. There are three types of logs:  
-catalog_log: store all execuated transaction on catalog server  
-order_log: store all execuated transaction on order server  
-client_log: store all execuated HTTP request and response log for all concurrent clients  
+- catalog_log: store all execuated transaction on catalog server  
+- order_log: store all execuated transaction on order server  
+- client_log: store all execuated HTTP request and response log for all concurrent clients  
 
 ## Verification of All Test Cases  
 ### Test1 output: Perform search methods correctly  
@@ -360,7 +360,7 @@ The cons of Pessimistic Concurrency Control (Lock) is:
 1. Potential deadlock may happen
 2. Acquiring/releasing lock cause extra overhead and may hurt efficiency
 
-We finally chose Pessimistic Concurrency Control (Lock) since race condition happen too frequently when concurrent client > 5. It also makes the design simplier. Besides, since only catalog server use the lock, it is easy to skip deadlock problem.  
+We finally chose Pessimistic Concurrency Control (Lock) since race condition happen too frequently when concurrent client > 5. By doing so, we skip starvation and re-run problems. It also makes the design simplier. Besides, since only catalog server use the lock, it is easy to skip deadlock problem.  
 
 **Thread Pool V.S Dynamically Creating New Thread**  
 To handle client HTTP requests, we can choose either to launch a new thread every time or use the existing thread pool to allocate thread to message processing task. The pros of Thread Pool is:  
