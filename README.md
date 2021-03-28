@@ -8,7 +8,7 @@
 **[Intermediate Milestone]**  
 test1: Perform search methods correctly.  
 test2: Perform lookup methods correctly.  
-test3: Buy operations run and update the stock of the item correctly  
+test3: Run Buy operations and update the stock of the item correctly  
 test4: (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
 **[Final Milestone]**  
 test5: Run above test cases, but deploy servers on three remote EC2 machines, with each of the three components on a different machine  
