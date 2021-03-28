@@ -332,7 +332,7 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 
 PS: all response time is calculated from 1000 requests  
 
-From the result, we see the same results as **Search** operation, please check the comment in **Search** operation section. Also, we observed "Search" request is slightly slower than the "Lookup" request but slightly faster than "buy" requests (As buy request cost more round-trip time between remote servers).  
+- From the result, we see the same results as **Search** operation, please check the comment in **Search** operation section. Also, we observed "Search" request is slightly slower than the "Lookup" request but slightly faster than "buy" requests (As buy request cost more round-trip time between remote servers).  
 
 <br />
 <br />
