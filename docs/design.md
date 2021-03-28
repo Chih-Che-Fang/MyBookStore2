@@ -260,7 +260,7 @@ PS: all response time sampled from 1000 requests
 Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle with client requests, server still need time to process request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.
 
 ## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
-**Search Operation:**  (Flow: Client -> frontend -> catalog)  
+**Breakdown of Search Operation:**  (Flow: Client -> frontend -> catalog)  
 Avg response time of **Frontend Server** to **Search** request (Seen by Client)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
@@ -272,33 +272,39 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 4.6953ms | 4.6999ms | 4.8698ms  | 4.8789ms  
 
+<br />
+<br />
+<br />
 
-**Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
+**Breakdown of Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
 Avg response time of **Frontend Server** to **Buy request** (Seend By Client)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 94.972ms | 94.424ms | 94.999ms  | 110.733ms  
 
 
-Avg response time of **Order Server** to **Buy request** (Seend By Frontend Server)  
+Avg response time of **Order Server** to **Buy request** (Seen By Frontend Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 15.8532ms | 15.636ms | 15.9036ms  | 16.0036ms  
 
 
-Avg response time of **Catalog Server** to **Query by Item Number** request (Seend By Order Server)  
+Avg response time of **Catalog Server** to **Query by Item Number** request (Seen By Order Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 5.6154ms | 5.636ms | 5.64ms  | 6.309ms  
 
 
-Avg response time of **Catalog Server** to **Update** request** (Seend By Order Server)  
+Avg response time of **Catalog Server** to **Update** request** (Seen By Order Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | ------------
 4.623ms | 4.782ms | 4.9531ms  | 5.321ms  
 
+<br />
+<br />
+<br />
 
-**Lookup operation:**  (Flow: Client -> fronend -> catalog)  
+**Breakdown of Lookup operation:**  (Flow: Client -> fronend -> catalog)  
 Avg response time of **Frontend Server** to **Lookup** request (Seen by Client)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
@@ -310,9 +316,11 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 4.456ms | 4.3929ms | 4.4558ms  | 4.5089ms  
 
-
 PS: all response time sampled from 1000 requests
-PS: We defines response time as the time the client receives responses from remote servers, the time doesn't imply the message is being processed since we use asynchronous RPC call design, the server will launch a new thread whenever it receives a request from a client, sending a message to background processing, and respond to client immediately.  
+
+<br />
+<br />
+<br />
 
 Results show averaged response times are almost the same (only a slight increase) as multiple clients are making requests to a peer. It matches what we expected since our system design will launch a new thread whenever receive a client request. The response time shouldn't be affected by the number of concurrent request since the server respond to clients as soon as it receives the request. However, we still see a little increase in average response time, I think it might be affected by the time used to launch a new thread. As more requests receive concurrently, the server spends some time launching a new thread, which causes a slight difference.  
 
@@ -381,5 +389,5 @@ See [README.md #How to run?](https://github.com/Chih-Che-Fang/MyBookStore/blob/m
 # Possible Improvements and Extensions
 
 1. We didn't implement the fault tolerance. However, since catalog & order server stored all execuated log and initialization informtion, we can, in the future, implement a mechanisim reasily to recover books' status after a machine recovered from a fail  
-2. Currently we only have 1 machine for each type of server, but as client increases, the server has slower response time. Therefore, in the fututre, we can add more replicated server for each type of server and add a load balancer to handle concurrently client reuqests. In this way, we can scale this bookstore to a large number of customers.
+2. Currently we only have 1 machine for each type of server, but as client increases, the server has slower response time. Therefore, in the fututre, we can add more replicated server for each type of server and add a load balancer to handle concurrently client reuqests. In this way, we can reduce averaged response time and scale this bookstore to a large number of customers.
 3. We are using the thread per request model currently. Therefore, we could optimize averaged response latency time by using thread pool since each request doesn't need to wait for the launch time of a thread  
