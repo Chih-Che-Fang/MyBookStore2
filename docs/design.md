@@ -156,31 +156,31 @@ order_log: store all execuated transaction on order server
 client_log: store all execuated HTTP request and response log for all concurrent clients  
 
 ## Verification of All Test Cases  
-**Test1 output:**  
-**Client Log:**
-Client0: Send request http://127.0.0.1:8000/search?topic=distributed+systems
-Client0: Get response {'result': [{'item_number': '1', 'title': 'How to get a good grade in 677 in 20 minutes a day'}, {'item_number': '2', 'title': 'RPCs for Dummies'}]}
-Client0: Send request http://127.0.0.1:8000/search?topic=graduate+school
-Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art of Surviving Graduate School'}, {'item_number': '4', 'title': 'Cooking for the Impatient Graduate Student'}]}
+### Test1 output:  
+**Client Log:**  
+Client0: Send request http://127.0.0.1:8000/search?topic=distributed+systems  
+Client0: Get response {'result': [{'item_number': '1', 'title': 'How to get a good grade in 677 in 20 minutes a day'}, {'item_number': '2', 'title': 'RPCs for Dummies'}]}  
+Client0: Send request http://127.0.0.1:8000/search?topic=graduate+school  
+Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art of Surviving Graduate School'}, {'item_number': '4', 'title': 'Cooking for the Impatient Graduate Student'}]}  
 
-**Catalog Server Log:**  
+**Catalog Server Log:**    
 query_by_topic,distributed systems  
 query_by_topic,graduate school  
 **Result:** Pass, client correctly find all books related to topic "distributed system" and "graduate school". The catalog server correctly stored the two search operation.    
 
-**Test2 output:**  
+### Test2 output:   
 BuyerID:0 start to buy fish  
 SellerID:1 start to sell boars  
 **Result:** Pass, buyer 1 buy nothing, seller 1 sells nothing  
 
 
-**Test3 output:**  
+### Test3 output:  
 BuyerID:0 start to buy boars  
 BuyerID:1 start to buy salt  
 **Result:** Pass, buyer 1 buy nothing, seller 1 sells nothing  
 
 
-**Test4 output:**  
+### Test4 output:   
 SellerID:1 start to sell boars  
 PeerID:5 with no role start to work  
 BuyerID:2 start to buy boars  
