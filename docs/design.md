@@ -139,16 +139,16 @@ We terminate all EC2 instances, delete the security group, and key pairs created
 
 # Validation & Test
 ## Test Cases
-**test1 (Intermediate Milestone):** Perform search methods correctly.
-**test2 (Intermediate Milestone):** Perform lookup methods correctly.
-**test3 (Intermediate Milestone):** Run Buy operations and update the stock of the item correctly
-**test4 (Intermediate Milestone):** (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
-**Test5 (Final Milestone):** Run test1~test4 again, but deploy servers on different AWS EC2 instances.  
+- **test1 (Intermediate Milestone):** Perform search methods correctly.  
+- **test2 (Intermediate Milestone):** Perform lookup methods correctly.  
+- **test3 (Intermediate Milestone):** Run Buy operations and update the stock of the item correctly  
+- **test4 (Intermediate Milestone):** (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
+- **Test5 (Final Milestone):** Run test1~test4 again, but deploy servers on different AWS EC2 instances.  
 
 ## Automatic Test Scripts
-**run_local_test.bat:** This script will automatically start frontend, catalog, and order server on local mahcine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
+- **run_local_test.bat:** This script will automatically start frontend, catalog, and order server on local mahcine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
 
-**run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying corresponding server, on remote servers. Next, deploy a client on local machine and perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
+- **run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying corresponding server, on remote servers. Next, deploy a client on local machine and perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
 
 ## Test Output (Log)  
 We store all testing output under the output folder and use them to validate the correctness of each test case. There are three types of logs:  
@@ -257,7 +257,7 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 
 PS: all response time sampled from 1000 requests  
 
-Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle with client requests, server still need time to process request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.
+- Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle with client requests, server still need time to process request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.
 
 ## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
 **Breakdown of Search Operation:**  (Flow: Client -> frontend -> catalog)  
@@ -272,12 +272,16 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 4.6953ms | 4.6999ms | 4.8698ms  | 4.8789ms  
 
+From the result, we see:
+- As concurrent client increases, the averaged response time also increase. The reason might be that oo much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.  
+- Averaged response time between Catalog server and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers is delpoyed on AWS EC2 instances, the physical distance between Catalog server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less.  
+
 <br />
 <br />
 <br />
 
 **Breakdown of Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
-Avg response time of **Frontend Server** to **Buy request** (Seend By Client)  
+Avg response time of **Frontend Server** to **Buy request** (Seen By Client)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 94.972ms | 94.424ms | 94.999ms  | 110.733ms  
