@@ -13,7 +13,8 @@ Authors: Chih-Che Fang
 **order_server:** order server that process frontend server's buy request  
 **SystemMonitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
 **Client:** A class used to perform multiple HTTP request to frontend server  
-**Book:** A class used to store all book's detailed information like cost, title, topic, ...etc
+**Book:** A class used to store all book's detailed information like cost, title, topic, ...etc  
+**Logger:** A class used to output log to files  
 
 ## Operation Discription:  
 The **front end server** supports three operations:  
@@ -254,8 +255,7 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 79.524ms | 79.636ms | 86.7036ms  | 94.7036ms
 
-PS: all response time sampled from 1000 requests
-PS: We defines response time as the time the client receives responses from remote servers, the time doesn't imply the message is being processed since we use asynchronous RPC call design, the server will launch a new thread whenever it receives a request from a client, sending a message to background processing, and respond to client immediately.  
+PS: all response time sampled from 1000 requests  
 
 Results show averaged response times are almost the same (only a slight increase) as multiple clients are making requests to a peer. It matches what we expected since our system design will launch a new thread whenever receive a client request. The response time shouldn't be affected by the number of concurrent request since the server respond to clients as soon as it receives the request. However, we still see a little increase in average response time, I think it might be affected by the time used to launch a new thread. As more requests receive concurrently, the server spends some time launching a new thread, which causes a slight difference.  
 
