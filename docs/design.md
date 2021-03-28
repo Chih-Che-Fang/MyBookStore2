@@ -51,8 +51,8 @@ Format = **[Operation item_number stock cost Count topic title]**
 **topic:** The topic of the book  
 **title:** Indicate the book title  
 
-Here is one example of book initialization information that a catalog used to init book status:
-[init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day]
+Here is one example of book initialization information that a catalog used to init book status:  
+[init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day]  
 
 
 ## Operation Request Format
@@ -118,20 +118,23 @@ We already create a Amazon Linux2 AMI image with Docker installed and made it pu
 ### Dynamic creation of key pair
 We will create a key pair in AWS account for latter access of EC2 instances  
 
+### Dynamic security group
+We dynamically create security group and open HTTP port 8000-8002, 22 for servers
+
 ### Dynamic server creation
-We have pr-created Amazon AMI image that has Java SDK 8 installed. We dynamically create a security group that allows RPC access permission. We create an EC2 instance from the pre-created AMI image and attached it with the created security group. We tag each EC2 instance with a tag MyBazaar32144321" so that we can later access them and release them.
+We have pr-created Amazon AMI image that has Docker installed. We dynamically create a security group that allows HTTP REST API access permission. We create an EC2 instance from the pre-created AMI image and attached it with the created security group. We tag each EC2 instance with a tag MyBazaar32144321" so that we can later access them and release them.
 
 ### Dynamic code mgration and compliation
-We migrate the latest code to the remote server using SCP and invoke script linux_complie.sh to compile the code using ssh.
+We migrate the latest code to the remote server using SCP and invoke script ec2_setup.sh to build the docker image, run the docker image, and start the corresponding server on that EC2 machine
 
 ### Run test 1 ~ test 4
-We write peer initial state (Ex. type, product, neighbors, etc...) to info-id and generate global topology knowledge (Each peer's IP/port address) into config.txt using. Then we deploy the peers in each server (EC2 instance) using ssh. We wait a certain amount of time and kill all the peers after each test. Doing the same routine until all the tests finished.
+
 
 ### Gather test output(log) for validation
-We use SCP to pull test output under the output folder from all remote servers. We store the output from each server to the local machine's output folder. Ex. If server1's IP address is 128.0.35.1, we store the output to output\128.0.35.1. Since all output is tagged with test name, we know which test and what is the machine the output belongs to. We used this information to validate if the distributed system act as we expect.
+We use SCP to pull test output under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog_log and order_log, which respresent catalog server's log and order server's log respectively.
 
 ### Release AWS resource
-We terminate all EC2 instances and delete the security group and key pairs created previously at the end of the test
+We terminate all EC2 instances, delete the security group, and key pairs created previously at the end of the test
 
 # Validation & Test
 ## Test Cases
