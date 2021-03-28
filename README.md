@@ -32,7 +32,7 @@ Client4: Get response  {'result': 'Failed'}
 
 Fianlly, the distributed servers will output all server log to "output" folder  
 
-4.To verify the server operation's correctness, check the log file **"catalog_log"** & **"order_log"** under "output" folder  
+4.To verify the server operation's correctness, check the log file **"catalog_log"** & **"order_log"** under "output" folder. To verify client's requests log, check the log file **client_log**   
 
 
 # Directory/Files Description
@@ -44,7 +44,6 @@ Fianlly, the distributed servers will output all server log to "output" folder
 -	run.sh: docker image entrypoint script
 -	docs: Design documents
 -	Read.md: Readme file
--	test: Initial peer state for all tetest cases 
 -	config: Gloabal server IP/Port address reference
 -	run_performance_test.bat: Used only for performance test
 -	dockerfile: docker file for all servers (frontend/catalog/order)

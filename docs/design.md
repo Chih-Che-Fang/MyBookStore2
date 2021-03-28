@@ -8,26 +8,26 @@ Authors: Chih-Che Fang
 ![UML diagram](./UML.png "UML")
 
 ## Class Discription  
-**frontend_server:** frontend server that process and dispatch client's request  
-**catalog_server:** catalog server that host book information and is able to serve update, query_by_item, query_by_topic request from frontend and order server  
-**order_server:** order server that process frontend server's buy request  
-**SystemMonitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
-**Client:** A class used to perform multiple HTTP request to frontend server  
-**Book:** A class used to store all book's detailed information like cost, title, topic, ...etc  
-**Logger:** A class used to output log to files  
+- **frontend_server:** frontend server that process and dispatch client's request  
+- **catalog_server:** catalog server that host book information and is able to serve update, query_by_item, query_by_topic request from frontend and order server  
+- **order_server:** order server that process frontend server's buy request  
+- **SystemMonitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
+- **Client:** A class used to perform multiple HTTP request to frontend server  
+- **Book:** A class used to store all book's detailed information like cost, title, topic, ...etc  
+- **Logger:** A class used to output log to files  
 
 ## Operation Discription:  
-The **front end server** supports three operations:  
+- The **front end server** supports three operations:  
 **search(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
 **lookup(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
 **buy(item_number)**: Allows client to buy a book with the item number  
 
-The **catalog server** supports three operations:  
+- The **catalog server** supports three operations:  
 **query_by_topic(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
 **query_by_item(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
 **update(item_number, cost, stock_update)**: Allows client to update cost or update the stock of book  
 
-The **order server** supports three operations:  
+- The **order server** supports three operations:  
 **buy(item_number)**: Allows the user to buy a book with certain item number
 
 ## Sequence Diagram
@@ -139,22 +139,22 @@ We terminate all EC2 instances, delete the security group, and key pairs created
 
 # Validation & Test
 ## Test Cases
-**test1 (Intermediate Milestone):** Perform search methods correctly.
-**test2 (Intermediate Milestone):** Perform lookup methods correctly.
-**test3 (Intermediate Milestone):** Run Buy operations and update the stock of the item correctly
-**test4 (Intermediate Milestone):** (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
-**Test5 (Final Milestone):** Run test1~test4 again, but deploy servers on different AWS EC2 instances.  
+- **test1 (Intermediate Milestone):** Perform search methods correctly.  
+- **test2 (Intermediate Milestone):** Perform lookup methods correctly.  
+- **test3 (Intermediate Milestone):** Run Buy operations and update the stock of the item correctly  
+- **test4 (Intermediate Milestone):** (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
+- **Test5 (Final Milestone):** Run test1~test4 again, but deploy servers on different AWS EC2 instances.  
 
 ## Automatic Test Scripts
-**run_local_test.bat:** This script will automatically start frontend, catalog, and order server on local mahcine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
+- **run_local_test.bat:** This script will automatically start frontend, catalog, and order server on local mahcine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
 
-**run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying corresponding server, on remote servers. Next, deploy a client on local machine and perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
+- **run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying corresponding server, on remote servers. Next, deploy a client on local machine and perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
 
 ## Test Output (Log)  
 We store all testing output under the output folder and use them to validate the correctness of each test case. There are three types of logs:  
-catalog_log: store all execuated transaction on catalog server  
-order_log: store all execuated transaction on order server  
-client_log: store all execuated HTTP request and response log for all concurrent clients  
+- catalog_log: store all execuated transaction on catalog server  
+- order_log: store all execuated transaction on order server  
+- client_log: store all execuated HTTP request and response log for all concurrent clients  
 
 ## Verification of All Test Cases  
 ### Test1 output: Perform search methods correctly  
@@ -257,11 +257,10 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 
 PS: all response time sampled from 1000 requests  
 
-Results show averaged response times are almost the same (only a slight increase) as multiple clients are making requests to a peer. It matches what we expected since our system design will launch a new thread whenever receive a client request. The response time shouldn't be affected by the number of concurrent request since the server respond to clients as soon as it receives the request. However, we still see a little increase in average response time, I think it might be affected by the time used to launch a new thread. As more requests receive concurrently, the server spends some time launching a new thread, which causes a slight difference.  
-
+- Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle with client requests, server still need time to process request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.
 
 ## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
-**Search Operation:**  (Flow: Client -> frontend -> catalog)  
+**Breakdown of Search Operation:**  (Flow: Client -> frontend -> catalog)  
 Avg response time of **Frontend Server** to **Search** request (Seen by Client)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
@@ -274,32 +273,52 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 4.6953ms | 4.6999ms | 4.8698ms  | 4.8789ms  
 
 
-**Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
-Avg response time of **Frontend Server** to **Buy request** (Seend By Client)  
+PS: all response time is calculated from 1000 requests  
+
+From the result, we see:
+- Most of the time spent on the route between Client and Frontend server  
+- As concurrent client increases, the averaged response time also increase. The reason might be that oo much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases (Even though all servers adopted multi-thread to handle with client requests, server still need time to process requests and launch a new thread).  
+- Averaged response time between Catalog server and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers is delpoyed on AWS EC2 instances, the physical distance between Catalog server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less.  
+
+<br />
+<br />
+<br />
+
+**Breakdown of Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
+Avg response time of **Frontend Server** to **Buy request** (Seen By Client)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 94.972ms | 94.424ms | 94.999ms  | 110.733ms  
 
 
-Avg response time of **Order Server** to **Buy request** (Seend By Frontend Server)  
+Avg response time of **Order Server** to **Buy request** (Seen By Frontend Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 15.8532ms | 15.636ms | 15.9036ms  | 16.0036ms  
 
-
-Avg response time of **Catalog Server** to **Query by Item Number** request (Seend By Order Server)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | -------------
-5.6154ms | 5.636ms | 5.64ms  | 6.309ms  
-
-
-Avg response time of **Catalog Server** to **Update** request** (Seend By Order Server)  
+Avg response time of **Catalog Server** to **Update** request** (Seen By Order Server)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | ------------
 4.623ms | 4.782ms | 4.9531ms  | 5.321ms  
 
 
-**Lookup operation:**  (Flow: Client -> fronend -> catalog)  
+Avg response time of **Catalog Server** to **Query by Item Number** request (Seen By Order Server)  
+Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
+------------ | ------------- | ------------- | -------------
+5.6154ms | 5.636ms | 5.64ms  | 6.309ms  
+
+PS: all response time is calculated from 1000 requests  
+
+From the result, we see:
+- Most of the time spent on the route between Client and Frontend server  
+- From order server's perspective, averaged response time of "Update" operation is longer than "Query by Item Number". Also, as concurrent client increases, the operation time also increases. The reason might be that we used lock in "update" operation but not in "Query by Item Number". As client increases, concurrent will compete for the lock and therefore increase the response time of "Update" operation  
+- As concurrent client increases, the averaged response time also increase. The reason might be that oo much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases (Even though all servers adopted multi-thread to handle with client requests, server still need time to process requests and launch a new thread).  
+- Averaged response time between Catalog server, Order Server, and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers is delpoyed on AWS EC2 instances, the physical distance between Catalog/Order server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less. 
+<br />
+<br />
+<br />
+
+**Breakdown of Lookup operation:**  (Flow: Client -> fronend -> catalog)  
 Avg response time of **Frontend Server** to **Lookup** request (Seen by Client)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
@@ -311,12 +330,13 @@ Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time
 ------------ | ------------- | ------------- | -------------
 4.456ms | 4.3929ms | 4.4558ms  | 4.5089ms  
 
+PS: all response time is calculated from 1000 requests  
 
-PS: all response time sampled from 1000 requests
-PS: We defines response time as the time the client receives responses from remote servers, the time doesn't imply the message is being processed since we use asynchronous RPC call design, the server will launch a new thread whenever it receives a request from a client, sending a message to background processing, and respond to client immediately.  
+From the result, we see the same results as **Search** operation, please check the comment in **Search** operation section. Also, we observed "Search" request is slightly slower than "Lookup" request but slightly faster than "buy" requests (As buy request cost more round-trip time bewteen remote servers).  
 
-Results show averaged response times are almost the same (only a slight increase) as multiple clients are making requests to a peer. It matches what we expected since our system design will launch a new thread whenever receive a client request. The response time shouldn't be affected by the number of concurrent request since the server respond to clients as soon as it receives the request. However, we still see a little increase in average response time, I think it might be affected by the time used to launch a new thread. As more requests receive concurrently, the server spends some time launching a new thread, which causes a slight difference.  
-
+<br />
+<br />
+<br /> 
 
 # Design Tradeoffs
 **Flask  V.S Django/Struts**  
@@ -331,16 +351,16 @@ The cons of Django/Struts are:
 
 We finally choose to use Flask as our server implementation as it is easier to configure and have several built-in server template. It support multi-thread without any effort. As this project is small, we don't suffer from scability and security problem.   
 
-**Synchronous HTTP Request V.S Asyncrounous HTTP Request**  
-The pros of using Synchronous HTTP Request is:  
-1. Client side don't need to worry about the implementation of callback (from server) function  
-2. Client-side has lower complexity of system design. 
+**Pessimistic Concurrency Control (Lock) V.S Optimistic Concurency Control (Transaction Validation Mechanism)**  
+We need concurrency control to make sure transaction is consistent and atomic and prevent race condition happen. The pros of using Pessimistic Concurrency Control (Lock) is:    
+1. Don't need to worry about transaction starvation  
+2. Don't need to re-run the transaction and implement complicated transaction check mechansim  
 
-The cons of Synchronous HTTP Request is:  
-1. Inefficiency of resource usage (Client can do nothing when waiting for response)  
-2. Higher response time  
+The cons of Pessimistic Concurrency Control (Lock) is:  
+1. Potential deadlock may happen
+2. Acquiring/releasing lock cause extra overhead and may hurt efficiency
 
-We finally chose Synchronous HTTP Request since it makes the whole design in client-side simplier and consie. Alos, it makes debugging work easier. We use multiple threads to make HTTP request concurrently, overcoming the disavatage of inefficient resource use.  
+We finally chose Pessimistic Concurrency Control (Lock) since race condition happen too frequently when concurrent client > 5. By doing so, we skip starvation and re-run problems. It also makes the design simplier. Besides, since only catalog server use the lock, it is easy to skip deadlock problem.  
 
 **Thread Pool V.S Dynamically Creating New Thread**  
 To handle client HTTP requests, we can choose either to launch a new thread every time or use the existing thread pool to allocate thread to message processing task. The pros of Thread Pool is:  
@@ -351,7 +371,7 @@ The cons are:
 2. Higher memory usage since we must maintain a certain amount of thread  
 3. Hard to debug  
 
-We finally choose Dynamically Creating New Thread since the HTTP thread doesn't have too many data attributes and creating is fast. Given that performance doesn't have too much difference and we want to simplify our design, we can dynamically creating a new thread to handle HTTP client requests.
+We finally choose Dynamically Creating New Thread since the HTTP thread doesn't have too many data attributes and creating is fast. Given that performance doesn't have too much difference and we want to simplify our design, we can dynamically creating a new thread to handle HTTP client requests. It also help save memeory usage.    
 
 **Dynamic Creation of EC2 Instances V.S Hot Stand-By EC2 Instances**  
 When launching multiple servers for server deployment, we must choose between whether to dynamically creating new instances or deploy peers on hot standby servers. The pros of dynamic creation of EC2 Instances are:  
@@ -382,5 +402,5 @@ See [README.md #How to run?](https://github.com/Chih-Che-Fang/MyBookStore/blob/m
 # Possible Improvements and Extensions
 
 1. We didn't implement the fault tolerance. However, since catalog & order server stored all execuated log and initialization informtion, we can, in the future, implement a mechanisim reasily to recover books' status after a machine recovered from a fail  
-2. Currently we only have 1 machine for each type of server, but as client increases, the server has slower response time. Therefore, in the fututre, we can add more replicated server for each type of server and add a load balancer to handle concurrently client reuqests. In this way, we can scale this bookstore to a large number of customers.
+2. Currently we only have 1 machine for each type of server, but as client increases, the server has slower response time. Therefore, in the fututre, we can add more replicated server for each type of server and add a load balancer to handle concurrently client reuqests. In this way, we can reduce averaged response time and scale this bookstore to a large number of customers.
 3. We are using the thread per request model currently. Therefore, we could optimize averaged response latency time by using thread pool since each request doesn't need to wait for the launch time of a thread  
