@@ -13,7 +13,7 @@ Authors: Chih-Che Fang
 **order_server:** order server that process frontend server's buy request  
 **SystemMonitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
 **Client:** A class used to perform multiple HTTP request to frontend server  
-
+**Book:** A class used to store all book's detailed information like cost, title, topic, ...etc
 
 ## Operation Discription:  
 The **front end server** supports three operations:  
@@ -40,7 +40,19 @@ The **order server** supports three operations:
 I used Flask to implement each server. I start frontend server, catalog server, order server in sequence and finally launch client to send HTTP request to frontend server.
 Each Client reprensent a thread so that multiple client can request a single frontend server concurrently. Flask server support multi-threaded so that the server will launch a new thread for processing each new client request. Single Client request is implment as a synchronous request and will wait for frontend server's response.  When frontend server receive client's request, it just lauch a new HTTP request to the corresponding server.
 
-Servers can know each other's IP address and port by reading config file. Catalog server will read from catalog_log to init the status of books. Catalog and order will output executed operation to catalog_log and order_log under "output" folder.
+Servers can know each other's IP address and port by reading config file. Catalog server will read from catalog_log to init the status of books. Book class is used to store all book's detailed information. Catalog and order server will output executed operation to catalog_log and order_log under "output" folder. Initialization log has the following format:
+
+Format = **[Operation item_number stock cost Count topic title]**
+
+**Operation:** Indicate the execuated operation
+**item_number:** Indeicate the book's item number
+**stock:** Initial stock of the book
+**cost:** The cost of the book
+**topic:** The topic of the book
+**title:** Indicate the book title
+
+Here is one example of shared peer information that a buyer wants to buy fish and is neighbored with peer 2 & 3:
+[init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day]
 
 
 ## Operation Request Format
@@ -69,23 +81,40 @@ catalog,127.0.0.1:8081
 order,127.0.0.1:8082  
  
 
-
 ## Concurency / Race Condition Protection
-When a RPC server receives a new client request, its message handler will launch a new thread to process the message. To enable concurrent message processing, our peer-to-peer distributed system use a shared file to store the information of each peer (Ex. product, type, item count, etc...). Therefore, the information of each peer needs to be protected and we used a lock to protect the shared peer information. When a peer read/write its data, we ensured the whole operation and process is atomic and therefore avoid the race condition. To be more specific, it avoids that a seller with only 1 item sell multiple products to products to a buyer (Since a seller may send multiple replies to different buyers)
+All books' information is stored in catalog server's memeory and shared by multiple threads concurrently. When a flask server receives a new client request, it will launch a new thread to process the message.  Therfore, when updating and read the book's information, we used a lock to make sure the whole operation is atomic in all server. For example, buy request from order server will check the book's stock, and if there is enough stock, the server will then decrease the stock by 1. Otherwise, the buy operation should reutrn "fail" rsult. Consider the following error case:  
 
-## Book Initialization Log
-We store the book initialization information and named it as catalog_log with the format:  
+client 1 queried the stock of book item_number 1 is 1  
+client 2 queried the stock of book item_number 1 is 1  
+client 1 update book stock to 0  
+client 2 update book stock to 0  
+
+To prevent the race condition mentioned above, we used a lock for buy operation:  
+getLock()
+client 1 queried the stock of book item_number 1 is 1  
+client 1 update book stock to 0  
+releaseLock()  
+getLock()  
+client 2 queried the stock of book item_number 1 is 0  
+client 2 buy failed  
+releaseLock()  
+
+## Server Output Log
+We store the book initialization information and execuated operation with file name of catalog_log, order_log:
 Format = **[type peerID Product NeighborID Count TestName]**
 
-**type:** Indicate whether the peer is a buyer, seller, or no-role. When the value is "na", the system randomly assigns a type to this peer.  
-**peerID:** The peer's ID  
-**Product:** The product the buyer wants to buy or a seller wants to sell. When the value is "na", the system randomly assigns a product to this peer.  
-**NeighborID:** Indicate all peer IDs that are neighbored to the peer. Neighbor ID is split by ",".  
-**Count:** Number of products left to sell.  
-**TestName:** Indicate the test name where the peer belongs to. It is used to mark what test the output log belongs to.  
+**Operation:** Indicate the execuated operation
+**item_number:** Indeicate the book's item number
+**stock:** Initial stock of the book
+**cost:** The cost of the book
+**topic:** The topic of the book
+**title:** Indicate the book title
 
 Here is one example of shared peer information that a buyer wants to buy fish and is neighbored with peer 2 & 3:
-[b 1 fish 2,3 0 test1]
+[init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day]
+[query_by_item,1]
+[query_by_item,1]
+[update,1,na,-1]
 
 ## Automatic Multiple Server Deployment
 ### Pre-created AMI image  
