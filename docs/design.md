@@ -40,18 +40,18 @@ The **order server** supports three operations:
 I used Flask to implement each server. I start frontend server, catalog server, order server in sequence and finally launch client to send HTTP request to frontend server.
 Each Client reprensent a thread so that multiple client can request a single frontend server concurrently. Flask server support multi-threaded so that the server will launch a new thread for processing each new client request. Single Client request is implment as a synchronous request and will wait for frontend server's response.  When frontend server receive client's request, it just lauch a new HTTP request to the corresponding server.
 
-Servers can know each other's IP address and port by reading config file. Catalog server will read from catalog_log to init the status of books. Book class is used to store all book's detailed information. Catalog and order server will output executed operation to catalog_log and order_log under "output" folder. Initialization log has the following format:
+Servers can know each other's IP address and port by reading config file. Catalog server will read from catalog_log to init the status of books. Book class is used to store all book's detailed information. Catalog and order server will output executed operation to catalog_log and order_log under "output" folder. Initialization log has the following format:  
 
-Format = **[Operation item_number stock cost Count topic title]**
+Format = **[Operation item_number stock cost Count topic title]**  
 
-**Operation:** Indicate the execuated operation
-**item_number:** Indeicate the book's item number
-**stock:** Initial stock of the book
-**cost:** The cost of the book
-**topic:** The topic of the book
-**title:** Indicate the book title
+**Operation:** Indicate the execuated operation  
+**item_number:** Indeicate the book's item number  
+**stock:** Initial stock of the book  
+**cost:** The cost of the book  
+**topic:** The topic of the book  
+**title:** Indicate the book title  
 
-Here is one example of shared peer information that a buyer wants to buy fish and is neighbored with peer 2 & 3:
+Here is one example of book initialization information that a catalog used to init book status:
 [init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day]
 
 
@@ -90,7 +90,8 @@ client 1 update book stock to 0
 client 2 update book stock to 0  
 
 To prevent the race condition mentioned above, we used a lock for buy operation:  
-getLock()
+
+getLock()  
 client 1 queried the stock of book item_number 1 is 1  
 client 1 update book stock to 0  
 releaseLock()  
@@ -100,25 +101,19 @@ client 2 buy failed
 releaseLock()  
 
 ## Server Output Log
-We store the book initialization information and execuated operation with file name of catalog_log, order_log:
-Format = **[type peerID Product NeighborID Count TestName]**
+We store the execuated operation with file name of catalog_log, order_log in catalog server & order server respectively:  
+Format = **[Operation args]**  
 
-**Operation:** Indicate the execuated operation
-**item_number:** Indeicate the book's item number
-**stock:** Initial stock of the book
-**cost:** The cost of the book
-**topic:** The topic of the book
-**title:** Indicate the book title
+**Operation:** Execuated operation name  
+**args:** Argumnets of the execuated operation  
 
-Here is one example of shared peer information that a buyer wants to buy fish and is neighbored with peer 2 & 3:
-[init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day]
-[query_by_item,1]
-[query_by_item,1]
-[update,1,na,-1]
+Here is one example of execuated operation stored by catalog server:  
+[query_by_item,2]  
+[update,2,na,-1]  
 
 ## Automatic Multiple Server Deployment
 ### Pre-created AMI image  
-We already create a Amazon Linux2 AMI image with JDK 8 installed and made it public to access, later we can create new EC2 instances from the image, it provides us a machine that is able to compile the code and run the system  
+We already create a Amazon Linux2 AMI image with Docker installed and made it public to access, later we can create new EC2 instances from the image, it provides us a machine that is able to compile the code and run the system  
 
 ### Dynamic creation of key pair
 We will create a key pair in AWS account for latter access of EC2 instances  
