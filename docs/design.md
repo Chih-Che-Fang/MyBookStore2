@@ -111,29 +111,29 @@ Here is one example of execuated operation stored by catalog server:
 [query_by_item,2]  
 [update,2,na,-1]  
 
-## Automatic Multiple Server Deployment
-### Pre-created AMI image  
+## Automatic Distributed Server Deployment
+### 1.Pre-created AMI image  
 We already create a Amazon Linux2 AMI image with Docker installed and made it public to access, later we can create new EC2 instances from the image, it provides us a machine that is able to build and run docker image
 
-### Dynamic creation of key pair
+### 2.Dynamic creation of key pair
 We will create a key pair in AWS account for latter access of EC2 instances  
 
-### Dynamic security group
+### 3.Dynamic security group
 We dynamically create security group and open HTTP port 8000-8002, 22 for servers
 
-### Dynamic server creation
+### 4.Dynamic server creation
 We have pr-created Amazon AMI image that has Docker installed. We dynamically create a security group that allows HTTP REST API access permission. We create an EC2 instance from the pre-created AMI image and attached it with the created security group. We tag each EC2 instance with a tag MyBazaar32144321" so that we can later access them and release them.
 
-### Dynamic code mgration and docker image build-up
+### 5.Dynamic code mgration and docker image build-up
 We migrate the latest code to the remote server using SCP and invoke script ec2_setup.sh to build the docker image, run the docker image, and start the corresponding server on that EC2 machine
 
-### Perform test 1 ~ test 4
+### 6.Perform test 1 ~ test 4
 We automatically build a docker image for client and run the client in a container. Then the client can launch multiple threads and perform multiple HTTP request to frontend server. That is, the client will run test1 ~ test4 in order and send requests to frontend server.
 
-### Gather test output(log) for validation
+### 7.Gather test output(log) for validation
 We use SCP to pull test output under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog_log and order_log, which respresent catalog server's log and order server's log respectively.
 
-### Release AWS resource
+### 8.Release AWS resource
 We terminate all EC2 instances, delete the security group, and key pairs created previously at the end of the test
 
 # Validation & Test
@@ -147,10 +147,10 @@ We terminate all EC2 instances, delete the security group, and key pairs created
 ## Automatic Test Scripts
 **run_local_test.bat:** This script will automatically start frontend, catalog, and order server on local mahcine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
 
-**run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, deploying peers on the remote server, perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Multiple Server Deployment".  
+**run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying corresponding server, on remote servers. Next, deploy a client on local machine and perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
 
 ## Test Output (Log)  
-We store all testing output under the output folder and use them to validate the correctness of each test case. For local testing, each file is named with testID.out (Ex. test4.out). It will print all peers' logs on that machine, like which buyer bought a product or which seller sold a product. For distributed testing on different servers, we store all remote server's output under output/IP address (Ex.output/127.35.6.1). In this way, we know which test and machine this log/output belong to and easy to debug. Here is one output example of test1:  
+We store all testing output under the output folder and use them to validate the correctness of each test case. For local testing,
 
 SellerID:1 start to sell fish  
 BuyerID:0 start to buy fish  
