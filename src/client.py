@@ -83,27 +83,17 @@ if __name__ == '__main__':
 	for c in clients:
 		c.join()
 	
-	##Run Performance Test
-	#num_req = 500
-	#total_time = 0
-	#for i in range(num_req):
-	#	start_time = time.time()
-	#	# print('Client0: Get response ', send_req(0, "http://{}/search?topic={}".format(frontend_addr, 'graduate+school')))
-	#	print('Client0: Get response ', send_req(0, "http://{}/lookup?item_number={}".format(frontend_addr, 2)))
-	#	total_time += (time.time() - start_time)
-	#print('Client0: Averaged Execuation time for {} request is {} ms'.format(num_req, total_time * 1000 / num_req))	
 
-
-	## #Run Performance Test
-	## clients = []
-	## num_clients = 9
-	## num_req = 500
-	## for i in range(num_clients):
-	## 	c = Client(i + 1, num_req, True)
-	## 	c.start()
-	## 	clients.append(c)
-	## 
-	## for c in clients:
-	## 	c.join()
+	# #Run Performance Test
+	# clients = []
+	# num_clients = 3
+	# num_req = 500
+	# for i in range(num_clients):
+	# 	c = Client(i + 1, num_req, True)
+	# 	c.start()
+	# 	clients.append(c)
+	# 
+	# for c in clients:
+	# 	c.join()
 		
 

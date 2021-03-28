@@ -20,8 +20,8 @@ update,1,na,-1
 query_by_item,2
 query_by_item,2
 update,2,na,-1
-update,2,na,-1
+query_by_item,2
 query_by_item,2
 update,2,na,-1
-query_by_item,2
+update,2,na,-1
 update,2,na,-1
