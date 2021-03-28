@@ -218,14 +218,14 @@ bought book 1
 
 ### Test4 output: (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
 **Client Log:**  
-Client1: Send request http://127.0.0.1:8000/buy?item_number=2
-Client2: Send request http://127.0.0.1:8000/buy?item_number=2
-Client3: Send request http://127.0.0.1:8000/buy?item_number=2
-Client4: Send request http://127.0.0.1:8000/buy?item_number=2
-Client1: Get response {'result': 'Success'}
-Client2: Get response {'result': 'Success'}
-Client3: Get response {'result': 'Success'}
-Client4: Get response {'result': 'Failed'}
+Client1: Send request http://127.0.0.1:8000/buy?item_number=2  
+Client2: Send request http://127.0.0.1:8000/buy?item_number=2  
+Client3: Send request http://127.0.0.1:8000/buy?item_number=2  
+Client4: Send request http://127.0.0.1:8000/buy?item_number=2  
+Client1: Get response {'result': 'Success'}  
+Client2: Get response {'result': 'Success'}  
+Client3: Get response {'result': 'Success'}  
+Client4: Get response {'result': 'Failed'}  
 
 **Catalog Server Log:**  
 query_by_item,2
@@ -244,7 +244,7 @@ bought book 2
 
 **Result:** Pass, book item_number 2 only has 3 stock. First of 3 concurrent client's buy request should return success and the last one should return fail. The order server correctly stored only the 3 succeded buy operation. The catalog server correctly log the 4 executed query and 3 update request.  
 
-**Test5 output: (Run test1 ~ test4 on distributed servers, log is collect from different servers)**  
+### Test5 output: Run test1~test4 again, but deploy servers on different AWS EC2 instances.  
 **Result:** Pass, All test1 ~ test 4 log is the same as run in local machine
 
 # Evaluation and Measurements
