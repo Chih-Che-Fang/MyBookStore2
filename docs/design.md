@@ -142,7 +142,7 @@ We terminate all EC2 instances, delete the security group, and key pairs created
 **test2 (Intermediate Milestone):** Perform lookup methods correctly.
 **test3 (Intermediate Milestone):** Run Buy operations and update the stock of the item correctly
 **test4 (Intermediate Milestone):** (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
-**Test5 (Final Milestone):** Run test1~test4 again, but deploy peers on different AWS EC2 instances.  
+**Test5 (Final Milestone):** Run test1~test4 again, but deploy servers on different AWS EC2 instances.  
 
 ## Automatic Test Scripts
 **run_local_test.bat:** This script will automatically start frontend, catalog, and order server on local mahcine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
@@ -189,56 +189,63 @@ query_by_item,4
 **Result:** Pass, client correctly get detailed information of book item_number 1 ~ 4. The catalog server correctly stored the 4 lookup operation.  
 
 ### Test3 output: Run Buy operations and update the stock of the item correctly
+**Client Log:**  
+Client0: Send request http://127.0.0.1:8000/buy?item_number=1  
+Client0: Get response {'result': 'Success'}  
+Client0: Send request http://127.0.0.1:8000/buy?item_number=1  
+Client0: Get response {'result': 'Success'}  
+Client0: Send request http://127.0.0.1:8000/buy?item_number=1  
+Client0: Get response {'result': 'Success'}  
+Client0: Send request http://127.0.0.1:8000/buy?item_number=1  
+Client0: Get response {'result': 'Failed'} 
 
-Client0: Send request http://127.0.0.1:8000/buy?item_number=1
-Client0: Get response {'result': 'Success'}
-Client0: Send request http://127.0.0.1:8000/buy?item_number=1
-Client0: Get response {'result': 'Success'}
-Client0: Send request http://127.0.0.1:8000/lookup?item_number=3
+**Catalog Server Log:**  
+query_by_item,1  
+update,1,na,-1  
+query_by_item,1  
+update,1,na,-1  
+query_by_item,1  
+update,1,na,-1  
 
-**Result:** Pass, buyer 1 buy nothing, seller 1 sells nothing  
+**Order Server Log:**  
+bought book 1  
+bought book 1  
+bought book 1  
+ 
+
+**Result:** Pass, book item_number 1 only has 3 stock. First of 3 client's buy request should success and the last one should fail. The order server correctly stored only the three succeded buy operation. The catalog server correctly log the 3 executed query and 3 update request.
 
 
 ### Test4 output: (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
-SellerID:1 start to sell boars  
-PeerID:5 with no role start to work  
-BuyerID:2 start to buy boars  
-BuyerID:0 start to buy boars  
-BuyerID:3 start to buy boars  
-PeerID:4 with no role start to work  
-SellerID:1 replied buyerID:0  
-SellerID:1 replied buyerID:2  
-SellerID:1 replied buyerID:3  
-SellerID:1 start to sell boars  
-SellerID:1 start to sell fish  
-BuyerID:2 bought boars from 1  
-BuyerID:2 start to buy fish  
-SellerID:1 replied buyerID:2  
-SellerID:1 start to sell salt  
-BuyerID:2 bought fish from 1  
-BuyerID:2 start to buy fish  
-**Result:** Pass, buyer 0,2,3 want to buy boars from seller 1, and seller 1 also replied all of them (race condition), only buyer 2 baught boars from seller 1 successfully  
+**Client Log:**  
+Client1: Send request http://127.0.0.1:8000/buy?item_number=2
+Client2: Send request http://127.0.0.1:8000/buy?item_number=2
+Client3: Send request http://127.0.0.1:8000/buy?item_number=2
+Client4: Send request http://127.0.0.1:8000/buy?item_number=2
+Client1: Get response {'result': 'Success'}
+Client2: Get response {'result': 'Success'}
+Client3: Get response {'result': 'Success'}
+Client4: Get response {'result': 'Failed'}
 
-**Test5 output: (Run on distributed servers, log is collect from different servers)**  
-BuyerID:2 start to buy boars  
-BuyerID:0 start to buy boars  
-SellerID:1 start to sell boars  
-PeerID:5 with no role start to work  
-PeerID:4 with no role start to work  
-BuyerID:3 start to buy boars  
-SellerID:1 replied buyerID:0  
-SellerID:1 replied buyerID:3  
-SellerID:1 replied buyerID:2  
-SellerID:1 start to sell boars  
-BuyerID:3 bought boars from 1  
-SellerID:1 start to sell fish  
-BuyerID:3 start to buy boars   
-SellerID:1 start to sell salt  
-SellerID:1 replied buyerID:2  
-SellerID:1 start to sell salt  
-BuyerID:2 bought salt from 1  
-BuyerID:2 start to buy fish  
-**Result:** Pass, buyer 0,2,3 want to buy boars from seller 1, and seller 1 also replied all of them (race condition), only buyer 3 baught boars from seller 1 successfully  
+**Catalog Server Log:**  
+query_by_item,2
+update,2,na,-1
+query_by_item,2
+query_by_item,2
+query_by_item,2
+update,2,na,-1
+update,2,na,-1
+
+**Order Server Log:**  
+bought book 2  
+bought book 2    
+bought book 2    
+ 
+
+**Result:** Pass, book item_number 2 only has 3 stock. First of 3 concurrent client's buy request should return success and the last one should return fail. The order server correctly stored only the 3 succeded buy operation. The catalog server correctly log the 4 executed query and 3 update request.  
+
+**Test5 output: (Run test1 ~ test4 on distributed servers, log is collect from different servers)**  
+**Result:** Pass, All test1 ~ test 4 log is the same as run in local machine
 
 # Evaluation and Measurements
 ## 1.	Compute the average response time per client search request by measuring the end-to-end response time seen by a client
