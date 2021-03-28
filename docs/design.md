@@ -348,7 +348,7 @@ We finally chose to open only a certain range of TCP ports between Different Rem
 
 # How to Run It
 
-See [README.md #How to run?](https://github.com/Chih-Che-Fang/MyBazaar#how-to-run "How to run")
+See [README.md #How to run?](https://github.com/Chih-Che-Fang/MyBookStore/blob/main/README.md "How to run")
 
 # Possible Improvements and Extensions
 
