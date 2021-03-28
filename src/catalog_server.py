@@ -3,6 +3,7 @@ import json
 from flask import Flask, redirect, jsonify, request
 import threading
 from logger import Logger
+from book import Book
 
 #Create the book store catalog end server instance
 app = Flask(__name__)
@@ -14,35 +15,6 @@ lock = threading.Lock()
 
 #logger used to store log
 logger = Logger('./output/catalog_log')
-
-#book data structure
-class Book(object):
-	#book constructor
-    def __init__(self, item_number, stock, cost, type, title):
-        self.item_number = item_number
-        self.stock = stock
-        self.cost = cost
-        self.type = type
-        self.title = title
-	#decrease number of book
-    def decrement(self):
-        if self.stock == 0:
-            return False
-        self.stock -= 1
-        return True
-	#increase number of book
-    def increment(self):
-        self.stock += 1
-	#update cost of book
-    def update_cost(self, cost):
-        self.cost = cost
-	#get book's detail information
-    def get_info(self):
-        return {'item_number':self.item_number, 'stock':self.stock, 'cost':self.cost
-                , 'type':self.type, 'title':self.title}
-	#get book title and item number (for search request)
-    def get_title(self):
-        return {'item_number':self.item_number, 'title':self.title}
 
 #Perform inference request 
 #input: search topic
@@ -95,7 +67,7 @@ def update():
 		book.update_cost(cost)
 	#update stock if any request
 	if stock != 'na':
-		if book.decrement() == False:
+		if book.decrease_stock() == False:
 			res['result'] = 'Failed'
 	lock.release()
 	

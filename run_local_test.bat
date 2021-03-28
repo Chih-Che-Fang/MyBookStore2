@@ -1,4 +1,5 @@
 REM Write initialization log to catalog & order server log
+del /Q .\output\*
 echo. 2> .\output\order_log
 echo init,1,1000,10,distributed systems,How to get a good grade in 677 in 20 minutes a day> .\output\catalog_log
 echo init,2,1000,20,distributed systems,RPCs for Dummies>> .\output\catalog_log

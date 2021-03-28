@@ -81,7 +81,6 @@ docker build -t bookstore_client .
 REM Run docker image to run all tests
 start cmd /k docker run -it -p 8000-8002:8000-8002 --name mybookstore32144321 bookstore_client 
 
-timeout 60
 REM Collect log from catalog & order server
 set /a count = 0
 for /f "tokens=*" %%a in (ips.txt) do (
