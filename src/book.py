@@ -2,11 +2,11 @@
 class Book(object):
 	#book constructor
     def __init__(self, item_number, stock, cost, type, title):
-        self.item_number = item_number
-        self.stock = stock
-        self.cost = cost
-        self.type = type
-        self.title = title
+        self.item_number = item_number #item number of a book
+        self.stock = stock #remaining stock of the book
+        self.cost = cost #Cost of the book
+        self.type = type #type of the book
+        self.title = title #book title
 	#decrease number of book
     def decrease_stock(self):
         if self.stock == 0:

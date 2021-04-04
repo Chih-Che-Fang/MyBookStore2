@@ -19,11 +19,11 @@ Client0: Send request http://127.0.0.1:8000/lookup?item_number=4
 Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 3, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}
 Client0: Send request http://127.0.0.1:8000/buy?item_number=1
 Client0: Get response {'result': 'Failed'}
-Client1: Send request http://127.0.0.1:8000/buy?item_number=2
 Client2: Send request http://127.0.0.1:8000/buy?item_number=2
+Client1: Send request http://127.0.0.1:8000/buy?item_number=2
 Client3: Send request http://127.0.0.1:8000/buy?item_number=2
 Client4: Send request http://127.0.0.1:8000/buy?item_number=2
 Client1: Get response {'result': 'Success'}
-Client2: Get response {'result': 'Success'}
+Client4: Get response {'result': 'Success'}
 Client3: Get response {'result': 'Success'}
-Client4: Get response {'result': 'Failed'}
+Client2: Get response {'result': 'Failed'}
