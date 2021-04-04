@@ -4,26 +4,26 @@ Client0: Get response {'result': [{'item_number': '1', 'title': 'How to get a go
 Client0: Send request http://127.0.0.1:8000/search?topic=graduate+school
 Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art of Surviving Graduate School'}, {'item_number': '4', 'title': 'Cooking for the Impatient Graduate Student'}]}
 Client0: Send request http://127.0.0.1:8000/lookup?item_number=1
-Client0: Get response {'result': {'cost': '10', 'item_number': '1', 'stock': 1000, 'title': 'How to get a good grade in 677 in 20 minutes a day', 'type': 'distributed systems'}}
+Client0: Get response {'result': {'cost': '10', 'item_number': '1', 'stock': 3, 'title': 'How to get a good grade in 677 in 20 minutes a day', 'type': 'distributed systems'}}
 Client0: Send request http://127.0.0.1:8000/buy?item_number=1
 Client0: Get response {'result': 'Success'}
 Client0: Send request http://127.0.0.1:8000/lookup?item_number=2
-Client0: Get response {'result': {'cost': '20', 'item_number': '2', 'stock': 1000, 'title': 'RPCs for Dummies', 'type': 'distributed systems'}}
+Client0: Get response {'result': {'cost': '20', 'item_number': '2', 'stock': 3, 'title': 'RPCs for Dummies', 'type': 'distributed systems'}}
 Client0: Send request http://127.0.0.1:8000/buy?item_number=1
 Client0: Get response {'result': 'Success'}
 Client0: Send request http://127.0.0.1:8000/lookup?item_number=3
-Client0: Get response {'result': {'cost': '5', 'item_number': '3', 'stock': 1000, 'title': 'Xen and the Art of Surviving Graduate School', 'type': 'graduate school'}}
+Client0: Get response {'result': {'cost': '5', 'item_number': '3', 'stock': 3, 'title': 'Xen and the Art of Surviving Graduate School', 'type': 'graduate school'}}
 Client0: Send request http://127.0.0.1:8000/buy?item_number=1
 Client0: Get response {'result': 'Success'}
 Client0: Send request http://127.0.0.1:8000/lookup?item_number=4
-Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 1000, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}
+Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 3, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}
 Client0: Send request http://127.0.0.1:8000/buy?item_number=1
-Client0: Get response {'result': 'Success'}
+Client0: Get response {'result': 'Failed'}
 Client1: Send request http://127.0.0.1:8000/buy?item_number=2
 Client2: Send request http://127.0.0.1:8000/buy?item_number=2
 Client3: Send request http://127.0.0.1:8000/buy?item_number=2
 Client4: Send request http://127.0.0.1:8000/buy?item_number=2
 Client1: Get response {'result': 'Success'}
 Client2: Get response {'result': 'Success'}
-Client4: Get response {'result': 'Success'}
 Client3: Get response {'result': 'Success'}
+Client4: Get response {'result': 'Failed'}
