@@ -73,7 +73,7 @@ response: {'result': result}, Ex. {'result': Success}
 To allow servers to communicate with each other, we need to give them other peer's addresses and ports, we use a file - config to record the information.
 Format = **[Type, IPAddress:Port]**  
 
-**Type:** Type of the server
+**Type:** Type of the server  
 **IPAddress:Port:** The peer's ipv4 address and listening port  
 
 Here is one example of configt file:  
@@ -261,13 +261,13 @@ PS: all response time sampled from 1000 requests
 
 ## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
 **Breakdown of Search Operation:**  (Flow: Client -> frontend -> catalog)  
-Avg response time of **Frontend Server** to **Search** request (Seen by Client)  
+Avg response time of **Frontend Server** to **Search** request seen by Client (**Client <-> Frontend Server**)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 79.524ms | 79.636ms | 86.7036ms  | 94.7036ms  
 
 
-Avg response time of **Catalog Server** to **Query by Topic** request (Seen by Frontend Server)  
+Avg response time of **Catalog Server** to **Query by Topic** request seen by Frontend Server (**Frontend Server <-> Catalog Server**)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
 4.6953ms | 4.6999ms | 4.8698ms  | 4.8789ms  
@@ -285,24 +285,24 @@ From the result, we see:
 <br />
 
 **Breakdown of Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
-Avg response time of **Frontend Server** to **Buy request** (Seen By Client)  
+Avg response time of **Frontend Server** to **Buy request** seen By Client (**Client <-> Frontend Server**)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 94.972ms | 94.424ms | 94.999ms  | 110.733ms  
 
 
-Avg response time of **Order Server** to **Buy request** (Seen By Frontend Server)  
+Avg response time of **Order Server** to **Buy request** seen by Frontend Server  (**Frontend Server <-> Order Server**)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 15.8532ms | 15.636ms | 15.9036ms  | 16.0036ms  
 
-Avg response time of **Catalog Server** to **Update** request** (Seen By Order Server)  
+Avg response time of **Catalog Server** to **Update** request** seen by Order Server  (**Order Server <-> Catalog Server**)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | ------------
 4.623ms | 4.782ms | 4.9531ms  | 5.321ms  
 
 
-Avg response time of **Catalog Server** to **Query by Item Number** request (Seen By Order Server)  
+Avg response time of **Catalog Server** to **Query by Item Number** request seen by Order Server  (**Order Server <-> Catalog Server**)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
 ------------ | ------------- | ------------- | -------------
 5.6154ms | 5.636ms | 5.64ms  | 6.309ms  
@@ -319,13 +319,13 @@ From the result, we see:
 <br />
 
 **Breakdown of Lookup operation:**  (Flow: Client -> fronend -> catalog)  
-Avg response time of **Frontend Server** to **Lookup** request (Seen by Client)  
+Avg response time of **Frontend Server** to **Lookup** request seen by Client  (**Client <-> Frontend Server**)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
 76.293ms | 78.131ms | 86.386ms  | 92.9996ms  
 
 
-Avg response time of **Catalog Server** to **Query by Item Number** request (Seen by Frontend Server)  
+Avg response time of **Catalog Server** to **Query by Item Number** request seen by Frontend Server  (**Frontend Server <-> Catalog Server**)  
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
 4.456ms | 4.3929ms | 4.4558ms  | 4.5089ms  
