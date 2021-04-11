@@ -11,6 +11,8 @@ REM  Write initial config info for local machine
 echo frontend,127.0.0.1:8000>config
 echo catalog,127.0.0.1:8001>>config
 echo order,127.0.0.1:8002>>config
+echo cache,127.0.0.1:8003>>config
+
 
 REM Get docker entry point script
 xcopy /y .\docker_scripts\run_all.sh .\run.sh

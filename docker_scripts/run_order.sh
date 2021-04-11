@@ -1,4 +1,4 @@
 #!/bin/bash
 > order_log
 
-exec python3 ./src/order_server.py
+exec python3 -m src.server.order_server

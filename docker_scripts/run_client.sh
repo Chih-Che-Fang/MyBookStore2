@@ -1,3 +1,3 @@
 #!/bin/bash
-exec python3 ./src/client.py &
+exec python3 -m src.client.client &
 sleep 120000
