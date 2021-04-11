@@ -76,4 +76,4 @@ def update():
     
 #start the bookstore frontend server
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8003, threaded=True)
+    app.run(host='0.0.0.0', port=8005, threaded=True)

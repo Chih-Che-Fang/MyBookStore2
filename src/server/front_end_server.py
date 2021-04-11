@@ -2,13 +2,13 @@ from flask import Flask, redirect, jsonify, request
 import time
 import requests
 from src.utils.performance_monitor import Monitor
-from src.utils.config import Config
+from src.utils.loadbalancer import LoadBlancer
 import json
 
 #Create the book store front end server instance
 app = Flask(__name__)
 #Crate a global server address reference
-config = Config('config')
+lb = LoadBlancer('config')
 
 #Performance monitors to trace average response time
 q_by_topic_monitor = Monitor('Frontend Server', 'query by item topic')
@@ -24,17 +24,18 @@ def search():
 	topic = request.args.get('topic')
 	
 	#Query the cache server for search operation
-	cache = requests.get('http://{}/search?topic={}'.format(config.getAddress('cache'), topic)).json()
+	cache = requests.get('http://{}/search?topic={}'.format(lb.getAddress('cache'), topic)).json()
 	
 	if len(cache) == 0:
-		#redirect search request to catalog server
+		#cache doesn't exist, redirect search request to catalog server
 		print('Frontend Server: Redirect search request to catalog server')
 		start_time = time.time()
-		res = requests.get('http://{}/query_by_topic?topic={}'.format(config.getAddress('catalog'), topic)).json()
-		res_cache = requests.get('http://{}/put_search_cache?topic={}&res={}'.format(config.getAddress('cache'), topic, json.dumps(res)))
+		res = requests.get('http://{}/query_by_topic?topic={}'.format(lb.getAddress('catalog'), topic)).json()
+		res_cache = requests.get('http://{}/put_search_cache?topic={}&res={}'.format(lb.getAddress('cache'), topic, json.dumps(res)))
 		q_by_topic_monitor.add_sample(time.time() - start_time)
 		return res
 	else:
+		#Cache hit! Return cache directly
 		print('Frontend Server: Get result from cache')
 		return cache
 	
@@ -47,18 +48,20 @@ def lookup():
 	print('Frontend Server: Process lookup request')
 	item_number = request.args.get('item_number')
 	
-	#Query the cache server for search operation
-	cache = requests.get('http://{}/lookup?item_number={}'.format(config.getAddress('cache'), item_number)).json()
+	#Query the cache server for lookup operation
+	cache = requests.get('http://{}/lookup?item_number={}'.format(lb.getAddress('cache'), item_number)).json()
 	
 	if len(cache) == 0:
-		#redirect search request to catalog server
+		#cache doesn't exist, redirect search request to catalog server
 		print('Frontend Server: Redirect lookup request to catalog server')
 		start_time = time.time()
-		res = requests.get('http://{}/query_by_item?item_number={}'.format(config.getAddress('catalog'), item_number)).json()
-		res_cache = requests.get('http://{}/put_lookup_cache?res={}'.format(config.getAddress('cache'), json.dumps(res))).json()
+		
+		res = requests.get('http://{}/query_by_item?item_number={}'.format(lb.getAddress('catalog'), item_number)).json()
+		res_cache = requests.get('http://{}/put_lookup_cache?res={}'.format(lb.getAddress('cache'), json.dumps(res))).json()
 		q_by_item_monitor.add_sample(time.time() - start_time)
 		return res
 	else:
+		#Cache hit! Return cache directly
 		print('Frontend Server: Get result from cache')
 		return cache
 
@@ -72,7 +75,7 @@ def buy():
 
 	#redirect search request to order server
 	start_time = time.time()
-	res = requests.get('http://{}/buy?item_number={}'.format(config.getAddress('order'), item_number)).json()
+	res = requests.get('http://{}/buy?item_number={}'.format(lb.getAddress('order'), item_number)).json()
 	buy_monitor.add_sample(time.time() - start_time)
 	
 	return res

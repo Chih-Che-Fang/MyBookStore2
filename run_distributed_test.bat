@@ -6,7 +6,7 @@ aws ec2 delete-security-group --group-name MyBookStore32144321
 aws ec2 create-security-group --group-name MyBookStore32144321 --description "SG for 677 lab2"
 
 REM Set up security group permission to allow HTTP rquest among ec2 servers
-aws ec2 authorize-security-group-ingress --group-name MyBookStore32144321 --protocol tcp --port 8000-8002 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-name MyBookStore32144321 --protocol tcp --port 8000-8005 --cidr 0.0.0.0/0
 aws ec2 authorize-security-group-ingress --group-name MyBookStore32144321 --protocol tcp --port 22 --cidr 0.0.0.0/0
 
 REM Create EC2 instances

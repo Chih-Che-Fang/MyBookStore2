@@ -10,8 +10,10 @@ echo. 2>> .\output\catalog_log
 REM  Write initial config info for local machine
 echo frontend,127.0.0.1:8000>config
 echo catalog,127.0.0.1:8001>>config
-echo order,127.0.0.1:8002>>config
-echo cache,127.0.0.1:8003>>config
+echo catalog,127.0.0.1:8002>>config
+echo order,127.0.0.1:8003>>config
+echo order,127.0.0.1:8004>>config
+echo cache,127.0.0.1:8005>>config
 
 
 REM Get docker entry point script
@@ -26,7 +28,7 @@ REM Build docker image
 docker build -t bookstore .
 
 REM Run the docker image and map port to local host
-start cmd /k docker run -p 8000-8002:8000-8002 --name mybookstore32144321 bookstore 
+start cmd /k docker run -p 8000-8005:8000-8005 --name mybookstore32144321 bookstore
 
 timeout 20
 

@@ -4,9 +4,13 @@ from flask import Flask, redirect, jsonify, request
 import threading
 from src.utils.logger import Logger
 from src.utils.book import Book
+import sys
 
 #Create the book store catalog end server instance
 app = Flask(__name__)
+
+#Define server id
+id = -1
 
 #Initialition of book store instance
 books = {}
@@ -91,5 +95,6 @@ def set_init_state(file_name):
     
 #start the bookstore catalog server
 if __name__ == '__main__':
-    set_init_state('./output/catalog_log')
-    app.run(host='0.0.0.0', port=8001, threaded=True)
+	id = int(sys.argv[1])
+	set_init_state('./output/catalog_log')
+	app.run(host='0.0.0.0', port=8001 + id, threaded=True)

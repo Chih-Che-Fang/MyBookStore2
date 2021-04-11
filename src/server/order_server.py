@@ -5,12 +5,18 @@ import requests
 import time
 from src.utils.performance_monitor import Monitor
 from src.utils.logger import Logger
-from src.utils.config import Config
+from src.utils.loadbalancer import LoadBlancer
+import sys
+
 
 #Create the book store order server instance
 app = Flask(__name__)
+
+#Define server id
+id = -1
+
 #Crate a global server address reference
-config = Config('config')
+lb = LoadBlancer('config')
 #Create Performance monitors to trace average response time
 q_by_item_monitor = Monitor('Order Server', 'query_by_item')
 update_monitor = Monitor('Order Server', 'update')
@@ -27,10 +33,11 @@ def buy():
 	
 	#send query request to catalog server to get the number of book
 	item_number = request.args.get('item_number')
+	catalog_addr = lb.getAddress('catalog')
 	print('Order Server: Receive buy request where item_number=', item_number)
 	
 	start_time = time.time()
-	res = requests.get("http://{}/query_by_item?item_number={}".format(config.getAddress('catalog'), item_number)).json()
+	res = requests.get("http://{}/query_by_item?item_number={}".format(catalog_addr, item_number)).json()
 	q_by_item_monitor.add_sample(time.time() - start_time)
 	
 
@@ -40,8 +47,7 @@ def buy():
 	
 	#Send update request to catalog server to buy the book
 	start_time = time.time()
-	res = requests.get("http://{}/update?item_number={}&stock={}&cost={}".format(
-																	config.getAddress('catalog'), item_number,-1,'na')).json()
+	res = requests.get("http://{}/update?item_number={}&stock={}&cost={}".format(catalog_addr, item_number, -1, 'na')).json()
 	update_monitor.add_sample(time.time() - start_time)
 	
 	#if buy operation executed, log trasnaction
@@ -53,4 +59,5 @@ def buy():
     
 #start the bookstore order server
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8002, threaded=True)
+	id = int(sys.argv[1])
+	app.run(host='0.0.0.0', port=8003 + id, threaded=True)
