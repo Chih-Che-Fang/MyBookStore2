@@ -1,4 +1,5 @@
 #!/bin/bash
+
 > order_log
 # log initilazation state
 echo "init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day"> ./output/catalog_log

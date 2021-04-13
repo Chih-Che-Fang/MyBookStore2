@@ -2,13 +2,22 @@ from flask import Flask, redirect, jsonify, request
 import time
 import requests
 from src.utils.performance_monitor import Monitor
-from src.utils.loadbalancer import LoadBlancer
+from src.utils.config import Config
+from src.communication.loadbalancer import LoadBlancer
+from src.communication.heart_beat_listener import HeartBeatListener
 import json
 
 #Create the book store front end server instance
 app = Flask(__name__)
-#Crate a global server address reference
-lb = LoadBlancer('config')
+
+#global server address reference
+config = Config('config')
+
+#Crate a load balancer
+lb = LoadBlancer(config)
+
+#Crate a hear beat listener to monitor health of replicas
+hb_listener = HeartBeatListener(lb)
 
 #Performance monitors to trace average response time
 q_by_topic_monitor = Monitor('Frontend Server', 'query by item topic')
@@ -79,7 +88,22 @@ def buy():
 	buy_monitor.add_sample(time.time() - start_time)
 	
 	return res
-    
+
+
+#Process heart beat message
+#input: server id
+#output: ACK of heart beat
+@app.route('/heart_beat', methods=['GET'])
+def heart_beat():
+	server_type = request.args.get('server_type')
+	server_id = request.args.get('server_id')
+	hb_listener.heart_beat(server_type, int(server_id))
+	#print('Frontend Server: Receive heart beat message from {} server where id = {}'.format(server_type, server_id))
+	return jsonify({'result': 'Success'})
+
 #start the bookstore frontend server
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, threaded=True)
+	#start hear beat listener to detect faulty replicas
+	hb_listener.start()
+	#start server
+	app.run(host='0.0.0.0', port=8000, threaded=True)

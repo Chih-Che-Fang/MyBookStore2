@@ -4,6 +4,9 @@ from flask import Flask, redirect, jsonify, request
 import threading
 from src.utils.logger import Logger
 from src.utils.book import Book
+from src.utils.config import Config
+from src.communication.replica_protocol import ReplicaProtocol
+from src.communication.heart_beater import HeartBeater
 import sys
 
 #Create the book store catalog end server instance
@@ -19,6 +22,15 @@ lock = threading.Lock()
 
 #logger used to store log
 logger = Logger('./output/catalog_log')
+
+#global server address reference
+config = Config('config')
+
+#Get replication protocol (Primary Back-up Replcaition)
+rp = ReplicaProtocol('catalog', config)
+
+#Create heartbeater to send heart beat message to frontend server
+hb = HeartBeater('catalog', -1, config)
 
 #Perform inference request 
 #input: search topic
@@ -61,8 +73,51 @@ def update():
 	res = {'result': 'Success'}
 	book = books[request.args.get('item_number')]
 	cost = request.args.get('cost')
-	stock = request.args.get('stock')
+	stock = int(request.args.get('stock'))
+	global id
 	print('Catalog Server: Receive update request where item_number={}, cost={}, stock={}'.format(book.item_number, cost, stock))
+	
+	if rp.is_primary(id):
+		#If server is the primary, Perform update operation
+		res = perform_update(book, cost, stock)
+		if res['result'] == 'Failed':
+			return jsonify(res)
+		#notify all replica to update
+		rp.notify_replicas_update(id, "http://{}/internal_update?item_number={}&stock={}&cost={}".format('{}', book.item_number, stock, 'na'))
+	else:
+		#Server is not a Primary, notify primary server to update
+		rp.notify_primary_update("http://{}/internal_update?item_number={}&stock={}&cost={}".format('{}', book.item_number, stock, 'na'))
+	
+	return jsonify(res)
+
+#Process update request sent by replicas
+#input: book item number, book cost, update number for the book item
+#output: Result of update request
+@app.route('/internal_update', methods=['GET'])
+def internal_update():
+	#Get input parameter from HTTP request
+	book = books[request.args.get('item_number')]
+	cost = request.args.get('cost')
+	stock = int(request.args.get('stock'))
+	global id
+	print('Catalog Server: Receive internal update request where item_number={}, cost={}, stock={}'.format(book.item_number, cost, stock))
+	
+	#Perform update operation
+	res = perform_update(book, cost, stock)
+	if res['result'] == 'Failed':
+		return jsonify(res)
+	#if server is primary, notify all other replicas to update
+	if rp.is_primary(id):
+		rp.notify_replicas_update(id, "http://{}/internal_update?item_number={}&stock={}&cost={}".format('{}', book.item_number, stock, 'na'))
+		
+	return jsonify(res)
+	
+	
+#Perform update operation
+#input: book instance, cost of the book, result of the HTTP reuqest
+#output: Result of update operation
+def perform_update(book, cost, stock):
+	res = {'result': 'Success'}
 	
 	#lock transaction to prevent race condition of update operation
 	lock.acquire()
@@ -71,7 +126,7 @@ def update():
 		book.update_cost(cost)
 	#update stock if any request
 	if stock != 'na':
-		if book.decrease_stock() == False:
+		if book.update_stock(stock) == False:
 			res['result'] = 'Failed'
 	lock.release()
 	
@@ -79,8 +134,9 @@ def update():
 	if(res['result'] == 'Success'):
 		logger.log('update,{},{},{}'.format(book.item_number, cost, stock))
 	
-	return  jsonify(res)
-	
+	return res
+
+
 #Set initialize book store satus
 #input: catalog log file name
 #output: None
@@ -95,6 +151,15 @@ def set_init_state(file_name):
     
 #start the bookstore catalog server
 if __name__ == '__main__':
+	#get server id
 	id = int(sys.argv[1])
+	
+	#Set initialize book store satus
 	set_init_state('./output/catalog_log')
+	
+	#start heart beater
+	hb.server_id = id
+	hb.start()
+	
+	#start server
 	app.run(host='0.0.0.0', port=8001 + id, threaded=True)

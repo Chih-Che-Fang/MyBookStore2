@@ -7,12 +7,14 @@ query_by_topic,graduate school
 query_by_item,1
 query_by_item,1
 update,1,na,-1
+update,1,na,-1
 query_by_item,2
 query_by_item,1
+update,1,na,-1
 update,1,na,-1
 query_by_item,3
 query_by_item,1
 update,1,na,-1
+update,1,na,-1
 query_by_item,4
 query_by_item,1
-update,1,na,-1

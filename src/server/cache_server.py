@@ -1,7 +1,7 @@
 from flask import Flask, redirect, jsonify, request, json
 import time
 import requests
-
+from src.utils.book import Book
 
 
 #Create the book store front end server instance
@@ -31,7 +31,7 @@ def search():
 def lookup():
 	print('Cache Server: Pass back lookup cache content to catalog server')
 	item_number = request.args.get('item_number')
-	return jsonify({'result': lookup_cache[item_number]} if item_number in lookup_cache else {})
+	return jsonify({'result': lookup_cache[item_number].get_info()} if item_number in lookup_cache else {})
 
 #Put search result into cache
 #input: topic
@@ -52,26 +52,24 @@ def put_search_cache():
 #output: result of put operation
 @app.route('/put_lookup_cache', methods=['GET'])
 def put_lookup_cache():
-	
 	res = json.loads(request.args.get('res'))['result']
-	item_number = res['item_number']
+	book = Book(res['item_number'], res['stock'], res['cost'], res['type'], res['title'])
 	
-	print('Cache Server: Put lookup({}) result into lookup cache'.format(item_number))
-	lookup_cache[item_number] = res
-
+	lookup_cache[book.item_number] = book
+	print('Cache Server: Put result of lookup({}) into lookup cache'.format(book.item_number))
 	return jsonify({'result':'success'})
 	
 
 #Process update request from catalog server
 #input: book item number
 #output: update result
-@app.route('/update', methods=['GET'])
-def update():
-	print('Cache Server: Pass back lookup cache content to catalog server')
+@app.route('/internal_update', methods=['GET'])
+def internal_update():
 	item_number = request.args.get('item_number')
-	stock = request.args.get('stock')
+	stock = int(request.args.get('stock'))
+	lookup_cache[item_number].update_stock(stock)
+	print('Cache Server: Update cache of lookup({}) with stock={}'.format(book.item_number, book.stock))
 	
-	lookup_cache[item_number]['stock'] = stock
 	return jsonify({'result':'success'})
     
 #start the bookstore frontend server

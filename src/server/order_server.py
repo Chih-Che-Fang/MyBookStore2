@@ -5,7 +5,9 @@ import requests
 import time
 from src.utils.performance_monitor import Monitor
 from src.utils.logger import Logger
-from src.utils.loadbalancer import LoadBlancer
+from src.communication.loadbalancer import LoadBlancer
+from src.utils.config import Config
+from src.communication.heart_beater import HeartBeater
 import sys
 
 
@@ -15,8 +17,7 @@ app = Flask(__name__)
 #Define server id
 id = -1
 
-#Crate a global server address reference
-lb = LoadBlancer('config')
+
 #Create Performance monitors to trace average response time
 q_by_item_monitor = Monitor('Order Server', 'query_by_item')
 update_monitor = Monitor('Order Server', 'update')
@@ -24,6 +25,14 @@ update_monitor = Monitor('Order Server', 'update')
 #logger used to store log
 logger = Logger('./output/order_log')
 
+#global server address reference
+config = Config('config')
+
+#Crate a load balancer
+lb = LoadBlancer(config)
+
+#Create heartbeater to send heart beat message to frontend server
+hb = HeartBeater('order', -1, config)
 
 #Process buy request
 #input: book item number, book cost, update number for the book item
@@ -59,5 +68,12 @@ def buy():
     
 #start the bookstore order server
 if __name__ == '__main__':
+	#get server id
 	id = int(sys.argv[1])
+	
+	#start heart beater
+	hb.server_id = id
+	hb.start()
+	
+	#start server
 	app.run(host='0.0.0.0', port=8003 + id, threaded=True)
