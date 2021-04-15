@@ -1,5 +1,6 @@
 import requests
 from flask import jsonify
+import sys
 
 #LoadBlancer is used to redirect request to alive replicas evenly 
 class LoadBlancer():
@@ -17,6 +18,7 @@ class LoadBlancer():
 	#input: HTTP request
 	#output: HTTP request result
 	def request(self, req):
+		print(req, file=sys.stderr)
 		res = None
 		max_retry = 2
 		while res == None and max_retry > 0:

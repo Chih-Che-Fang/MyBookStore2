@@ -173,6 +173,7 @@ def init_state(file_name):
 #start the bookstore catalog server
 if __name__ == '__main__':
 	#get server id
+	print(sys.argv)
 	id = int(sys.argv[1])
 	rp.id = id
 	logger.log_file = './output/catalog{}_log'.format(id)

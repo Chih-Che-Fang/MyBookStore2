@@ -55,27 +55,23 @@ for /f "tokens=*" %%a in (ips.txt) do (
   set /a port += 1
 )
 
+
 REM Migrate latest code, build docker image, and run the docker image
 set /a count = 0
+set /a r = 0
 for /f "tokens=*" %%a in (ips.txt) do (
-	REM Migrate code 
-	ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "rm -rf MyBookStore"
-	scp -o "StrictHostKeyChecking no" -i 677kp32144321.pem -r %cd%  ec2-user@%%a:~/MyBookStore
-	
-	REM Update the docker script according the type of server (frontend/catalog/order)
+	REM get the docker script according the type of server (frontend/catalog/order)
 	(call echo %%server_scripts[!count!]%%)>>tmp
 	set /p server_script=<tmp
 	del tmp
-	
-	scp -o "StrictHostKeyChecking no" -i 677kp32144321.pem .\docker_scripts\!server_script!  ec2-user@%%a:~/MyBookStore/run.sh
-	
+
+	REM start deploying server on remote machine
+	start cmd /k call .\function_batch\deploy.bat %%a !server_script! !r!
 	set /a r = !count! %% 2
-	REM Invoke ec2_setup script to build docker image, set up initalization log, and run the docker image for each type of server(frontend/order/catalog)
-	start cmd /k ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a cd ~/MyBookStore;sh ec2_setup.sh !r!
 	set /a count += 1
 )
 
-timeout 10
+timeout 20
 
 REM Get docker entry point script
 xcopy /y .\docker_scripts\run_client.sh .\run.sh
@@ -91,6 +87,7 @@ docker build -t bookstore_client .
 REM Run docker image to run all tests
 start cmd /k docker run -it -p 8000-8005:8000-8005 --name mybookstore32144321 bookstore_client 
 
+timeout 60
 REM Collect log from catalog & order server
 set /a count = 0
 for /f "tokens=*" %%a in (ips.txt) do (

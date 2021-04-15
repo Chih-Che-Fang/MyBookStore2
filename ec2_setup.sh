@@ -13,7 +13,7 @@ sudo docker ps -q -a | xargs docker rm
 sudo docker build -t bookstore .
 
 # Run Dokcer image
-sudo docker run -p 8000-8005:8000-8005 --name mybookstore32144321 bookstore
+sudo docker run -p 8000-8005:8000-8005 --name mybookstore32144321 bookstore $1
 sleep 20
 
 # Pull log from catalog & order server in the container

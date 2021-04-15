@@ -1,3 +1,4 @@
+setlocal enabledelayedexpansion
 REM Get docker entry point script
 xcopy /y .\docker_scripts\run_client.sh .\run.sh
 

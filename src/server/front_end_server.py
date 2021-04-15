@@ -1,4 +1,5 @@
 from flask import Flask, redirect, jsonify, request
+import sys
 import time
 import requests
 from src.utils.performance_monitor import Monitor
@@ -40,8 +41,8 @@ def search():
 		print('Frontend Server: Redirect search request to catalog server')
 		start_time = time.time()
 		
-		res = lb.request('http://{}/query_by_topic?topic={}'.format(lb.getAddress('catalog'), topic))
-
+		res = lb.request( 'http://{}/query_by_topic?topic={}'.format(lb.getAddress('catalog'), topic))
+		print(res, file=sys.stderr)
 		#put search result into cache
 		lb.request('http://{}/put_search_cache?topic={}&res={}'.format(lb.getAddress('cache'), topic, json.dumps(res)))
 
@@ -71,6 +72,7 @@ def lookup():
 		
 		res = lb.request('http://{}/query_by_item?item_number={}'.format(lb.getAddress('catalog'), item_number))
 		
+		print(res)
 		#put search result into cache
 		lb.request('http://{}/put_lookup_cache?res={}'.format(lb.getAddress('cache'), json.dumps(res)))
 		
