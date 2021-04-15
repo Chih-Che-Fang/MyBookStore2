@@ -75,17 +75,17 @@ if __name__ == '__main__':
 		#Run test2: Perform lookup and search methods correctly.
 		logger.log('Client0: Get response {}'.format(send_req(0, "http://{}/lookup?item_number={}".format(frontend_addr, i + 1))))
 	
-	##Run test4:  (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book
-	#clients = []
-	#num_clients = 4
-	#num_req = 1
-	#for i in range(num_clients):
-	#	c = Client(i + 1, num_req, False)
-	#	c.start()
-	#	clients.append(c)
-	#
-	#for c in clients:
-	#	c.join()
+	#Run test4:  (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book
+	clients = []
+	num_clients = 4
+	num_req = 1
+	for i in range(num_clients):
+		c = Client(i + 1, num_req, False)
+		c.start()
+		clients.append(c)
+	
+	for c in clients:
+		c.join()
 	
 
 	# #Run Performance Test

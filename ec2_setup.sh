@@ -13,9 +13,10 @@ sudo docker ps -q -a | xargs docker rm
 sudo docker build -t bookstore .
 
 # Run Dokcer image
-sudo docker run -p 8000-8002:8000-8002 --name mybookstore32144321 bookstore
+sudo docker run -p 8000-8005:8000-8005 --name mybookstore32144321 bookstore
 sleep 20
 
 # Pull log from catalog & order server in the container
 sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/catalog_log ./output
 sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/order_log ./output
+sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/cache_log ./output

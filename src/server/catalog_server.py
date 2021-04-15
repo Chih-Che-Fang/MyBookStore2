@@ -2,6 +2,7 @@ import io
 import json
 from flask import Flask, redirect, jsonify, request
 import threading
+from os import path
 from src.utils.logger import Logger
 from src.utils.book import Book
 from src.utils.config import Config
@@ -21,13 +22,13 @@ books = {}
 lock = threading.Lock()
 
 #logger used to store log
-logger = Logger('./output/catalog_log')
+logger = Logger('./output/order_log')
 
 #global server address reference
 config = Config('config')
 
 #Get replication protocol (Primary Back-up Replcaition)
-rp = ReplicaProtocol('catalog', config)
+rp = ReplicaProtocol(id, 'catalog', config)
 
 #Create heartbeater to send heart beat message to frontend server
 hb = HeartBeater('catalog', -1, config)
@@ -77,7 +78,7 @@ def update():
 	global id
 	print('Catalog Server: Receive update request where item_number={}, cost={}, stock={}'.format(book.item_number, cost, stock))
 	
-	if rp.is_primary(id):
+	if rp.is_primary():
 		#If server is the primary, Perform update operation
 		res = perform_update(book, cost, stock)
 		if res['result'] == 'Failed':
@@ -86,8 +87,12 @@ def update():
 		rp.notify_replicas_update(id, "http://{}/internal_update?item_number={}&stock={}&cost={}".format('{}', book.item_number, stock, 'na'))
 	else:
 		#Server is not a Primary, notify primary server to update
-		rp.notify_primary_update("http://{}/internal_update?item_number={}&stock={}&cost={}".format('{}', book.item_number, stock, 'na'))
-	
+		can_notify = rp.notify_primary_update("http://{}/internal_update?item_number={}&stock={}&cost={}".format('{}', book.item_number, stock, 'na'))
+		if not can_notify:
+			#If primary server crashed, Perform update operation
+			res = perform_update(book, cost, stock)
+			if res['result'] == 'Failed':
+				return jsonify(res)
 	return jsonify(res)
 
 #Process update request sent by replicas
@@ -107,12 +112,23 @@ def internal_update():
 	if res['result'] == 'Failed':
 		return jsonify(res)
 	#if server is primary, notify all other replicas to update
-	if rp.is_primary(id):
+	if rp.is_primary():
 		rp.notify_replicas_update(id, "http://{}/internal_update?item_number={}&stock={}&cost={}".format('{}', book.item_number, stock, 'na'))
 		
 	return jsonify(res)
 	
-	
+
+#Process re-sync request
+#input: book item number, book cost, update number for the book item
+#output: Result of update request
+@app.route('/resync', methods=['GET'])
+def resync():
+	#Get input parameter from HTTP request
+	server_id = int(request.args.get('server_id'))
+	rp.update_replica_health(server_id, True)
+	return jsonify(Book.get_book_list(books))
+
+
 #Perform update operation
 #input: book instance, cost of the book, result of the HTTP reuqest
 #output: Result of update operation
@@ -140,26 +156,35 @@ def perform_update(book, cost, stock):
 #Set initialize book store satus
 #input: catalog log file name
 #output: None
-def set_init_state(file_name):
-    file = open(file_name, 'r')
-    for line in file.readlines():
-        tokens = line.strip().split(',')
+def init_state(file_name):
+	#Cata log server has crashed before
+	if path.exists(logger.log_file):
+		return false
+	
+	file = open(file_name, 'r')
+	for line in file.readlines():
+		tokens = line.strip().split(',')
 		#if find init catalog log, add the book info to the book store 
-        if tokens[0] == 'init':
-            books[tokens[1]] = Book(tokens[1], int(tokens[2]), tokens[3], tokens[4], tokens[5])
+		books[tokens[1]] = Book(tokens[1], int(tokens[2]), tokens[3], tokens[4], tokens[5])
+		logger.log(line)
+	return True
         
     
 #start the bookstore catalog server
 if __name__ == '__main__':
 	#get server id
 	id = int(sys.argv[1])
+	rp.id = id
+	logger.log_file = './output/catalog{}_log'.format(id)
 	
-	#Set initialize book store satus
-	set_init_state('./output/catalog_log')
+	#initialize/recover book store satus
+	if init_state('./init_bookstore') == False:
+		books = rp.recover() #recover from a failed state
 	
 	#start heart beater
 	hb.server_id = id
 	hb.start()
 	
 	#start server
+	logger.log('catalog server started,{}'.format(id))
 	app.run(host='0.0.0.0', port=8001 + id, threaded=True)

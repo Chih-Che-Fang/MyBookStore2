@@ -1,4 +1,3 @@
 #!/bin/bash
-> order_log
 
-exec python3 -m src.server.order_server
+exec python3 -m src.server.order_server $1

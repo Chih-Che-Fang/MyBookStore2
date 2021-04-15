@@ -2,7 +2,7 @@ from flask import Flask, redirect, jsonify, request, json
 import time
 import requests
 from src.utils.book import Book
-
+from src.utils.logger import Logger
 
 #Create the book store front end server instance
 app = Flask(__name__)
@@ -13,6 +13,8 @@ search_cache = {}
 #Cache for lookup operation
 lookup_cache = {}
 
+#logger used to store log
+logger = Logger('./output/cache_log')
 
 #Process search request from frontend server
 #input: book topic
@@ -44,7 +46,8 @@ def put_search_cache():
 
 	print('Cache Server: Put search({}) result into search cache'.format(topic))
 	search_cache[topic] = res
-
+	
+	logger.log('put_search_cache,{}'.format(topic))
 	return jsonify({'result':'success'})
 
 #Put lookup result into cache
@@ -57,6 +60,7 @@ def put_lookup_cache():
 	
 	lookup_cache[book.item_number] = book
 	print('Cache Server: Put result of lookup({}) into lookup cache'.format(book.item_number))
+	logger.log('put_lookup_cache,{}'.format(book.item_number))
 	return jsonify({'result':'success'})
 	
 
@@ -68,8 +72,8 @@ def internal_update():
 	item_number = request.args.get('item_number')
 	stock = int(request.args.get('stock'))
 	lookup_cache[item_number].update_stock(stock)
-	print('Cache Server: Update cache of lookup({}) with stock={}'.format(book.item_number, book.stock))
-	
+	print('Cache Server: Update cache of lookup({}) with stock update={}'.format(item_number, stock))
+	logger.log('internal_update,{},{}'.format(item_number, stock))
 	return jsonify({'result':'success'})
     
 #start the bookstore frontend server

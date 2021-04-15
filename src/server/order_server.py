@@ -8,6 +8,7 @@ from src.utils.logger import Logger
 from src.communication.loadbalancer import LoadBlancer
 from src.utils.config import Config
 from src.communication.heart_beater import HeartBeater
+from src.communication.heart_beat_listener import HeartBeatListener
 import sys
 
 
@@ -34,6 +35,9 @@ lb = LoadBlancer(config)
 #Create heartbeater to send heart beat message to frontend server
 hb = HeartBeater('order', -1, config)
 
+#Crate a hear beat listener to monitor health of replicas
+hb_listener = HeartBeatListener(lb)
+
 #Process buy request
 #input: book item number, book cost, update number for the book item
 #output: Result of update request
@@ -41,12 +45,13 @@ hb = HeartBeater('order', -1, config)
 def buy():
 	
 	#send query request to catalog server to get the number of book
+	global id
 	item_number = request.args.get('item_number')
-	catalog_addr = lb.getAddress('catalog')
+	catalog_addr = lb.getAddress('catalog', id)
 	print('Order Server: Receive buy request where item_number=', item_number)
 	
 	start_time = time.time()
-	res = requests.get("http://{}/query_by_item?item_number={}".format(catalog_addr, item_number)).json()
+	res = lb.request("http://{}/query_by_item?item_number={}".format(catalog_addr, item_number))
 	q_by_item_monitor.add_sample(time.time() - start_time)
 	
 
@@ -56,7 +61,7 @@ def buy():
 	
 	#Send update request to catalog server to buy the book
 	start_time = time.time()
-	res = requests.get("http://{}/update?item_number={}&stock={}&cost={}".format(catalog_addr, item_number, -1, 'na')).json()
+	res = lb.request("http://{}/update?item_number={}&stock={}&cost={}".format(catalog_addr, item_number, -1, 'na'))
 	update_monitor.add_sample(time.time() - start_time)
 	
 	#if buy operation executed, log trasnaction
@@ -65,15 +70,28 @@ def buy():
 	
 	return res
         
+##Process heart beat message
+##input: server id
+##output: ACK of heart beat
+#@app.route('/heart_beat', methods=['GET'])
+#def heart_beat():
+#	server_type = request.args.get('server_type')
+#	server_id = request.args.get('server_id')
+#	hb_listener.heart_beat(server_type, int(server_id))
+#	#print('Frontend Server: Receive heart beat message from {} server where id = {}'.format(server_type, server_id))
+#	return jsonify({'result': 'Success'})
+
     
 #start the bookstore order server
 if __name__ == '__main__':
 	#get server id
 	id = int(sys.argv[1])
+	logger.log_file = './output/order{}_log'.format(id)
 	
 	#start heart beater
 	hb.server_id = id
 	hb.start()
 	
 	#start server
+	logger.log('order server started,{}'.format(id))
 	app.run(host='0.0.0.0', port=8003 + id, threaded=True)

@@ -13,6 +13,10 @@ class HeartBeatListener(threading.Thread):
 		self.lb = lb
 
 	#Record heart beat timestamp
+	#input:
+	#@server_type = type of the target server
+	#@server_id = id of the target server
+	#output: None
 	def heart_beat(self, server_type, server_id):
 		self.heart_beat_timestamp[server_type][server_id] = time.time()
 
@@ -24,7 +28,7 @@ class HeartBeatListener(threading.Thread):
 			for server in self.heart_beat_timestamp:
 				timestamps = self.heart_beat_timestamp[server]
 				for id in range(len(timestamps)):
-					
+					#send health status update to loadbalance
 					if (cur_time - timestamps[id]) > 5:
 						#print("{} Server with id {} is died".format(server, id))
 						self.lb.update_server_health(server, id, False)

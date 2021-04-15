@@ -3,7 +3,7 @@ REM Create key pair, security group
 aws ec2 delete-key-pair --key-name 677kp32144321
 aws ec2 create-key-pair --key-name 677kp32144321 --query "KeyMaterial" --output text > 677kp32144321.pem
 aws ec2 delete-security-group --group-name MyBookStore32144321
-aws ec2 create-security-group --group-name MyBookStore32144321 --description "SG for 677 lab2"
+aws ec2 create-security-group --group-name MyBookStore32144321 --description "SG for 677 lab3"
 
 REM Set up security group permission to allow HTTP rquest among ec2 servers
 aws ec2 authorize-security-group-ingress --group-name MyBookStore32144321 --protocol tcp --port 8000-8005 --cidr 0.0.0.0/0
@@ -13,6 +13,8 @@ REM Create EC2 instances
 aws ec2 run-instances --image-id ami-054d94c846d1abc06 --instance-type t2.micro --key-name 677kp32144321 --security-groups MyBookStore32144321 --tag-specifications "ResourceType=instance,Tags=[{Key=MyBookStore32144321,Value=m1}]" > instance.json
 aws ec2 run-instances --image-id ami-054d94c846d1abc06 --instance-type t2.micro --key-name 677kp32144321 --security-groups MyBookStore32144321 --tag-specifications "ResourceType=instance,Tags=[{Key=MyBookStore32144321,Value=m2}]" > instance.json
 aws ec2 run-instances --image-id ami-054d94c846d1abc06 --instance-type t2.micro --key-name 677kp32144321 --security-groups MyBookStore32144321 --tag-specifications "ResourceType=instance,Tags=[{Key=MyBookStore32144321,Value=m3}]" > instance.json
+aws ec2 run-instances --image-id ami-054d94c846d1abc06 --instance-type t2.micro --key-name 677kp32144321 --security-groups MyBookStore32144321 --tag-specifications "ResourceType=instance,Tags=[{Key=MyBookStore32144321,Value=m4}]" > instance.json
+aws ec2 run-instances --image-id ami-054d94c846d1abc06 --instance-type t2.micro --key-name 677kp32144321 --security-groups MyBookStore32144321 --tag-specifications "ResourceType=instance,Tags=[{Key=MyBookStore32144321,Value=m5}]" > instance.json
 
 REM Wait for EC2 to be ready
 timeout 45
@@ -27,10 +29,14 @@ setlocal enabledelayedexpansion
 del config
 set servers[0]=frontend
 set servers[1]=catalog
-set servers[2]=order
+set servers[2]=catalog
+set servers[3]=order
+set servers[4]=order
 set server_scripts[0]=run_frontend.sh
 set server_scripts[1]=run_catalog.sh
-set server_scripts[2]=run_order.sh 
+set server_scripts[2]=run_catalog.sh
+set server_scripts[3]=run_order.sh
+set server_scripts[4]=run_order.sh
 set /a count = 0
 set /a port = 8000
 
@@ -41,7 +47,10 @@ for /f "tokens=*" %%a in (ips.txt) do (
   del tmp
   
   echo !server!,%%a:!port!>> config
-  if !count! == 0 (set frontend_addr=%%a:!port!)
+  if !count! == 0 (
+	set frontend_addr=%%a:!port!
+	echo cache,%%a:8005>> config
+  )
   set /a count += 1
   set /a port += 1
 )
@@ -60,8 +69,9 @@ for /f "tokens=*" %%a in (ips.txt) do (
 	
 	scp -o "StrictHostKeyChecking no" -i 677kp32144321.pem .\docker_scripts\!server_script!  ec2-user@%%a:~/MyBookStore/run.sh
 	
+	set /a r = !count! %% 2
 	REM Invoke ec2_setup script to build docker image, set up initalization log, and run the docker image for each type of server(frontend/order/catalog)
-	start cmd /k ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "cd ~/MyBookStore;sh ec2_setup.sh"
+	start cmd /k ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a cd ~/MyBookStore;sh ec2_setup.sh !r!
 	set /a count += 1
 )
 
@@ -79,18 +89,30 @@ REM Build docker image for client
 docker build -t bookstore_client .
 
 REM Run docker image to run all tests
-start cmd /k docker run -it -p 8000-8002:8000-8002 --name mybookstore32144321 bookstore_client 
+start cmd /k docker run -it -p 8000-8005:8000-8005 --name mybookstore32144321 bookstore_client 
 
 REM Collect log from catalog & order server
 set /a count = 0
 for /f "tokens=*" %%a in (ips.txt) do (
+	if !count! == 0 (
+		ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "cd ~/MyBookStore;sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/cache_log ./output"
+		scp -i 677kp32144321.pem ec2-user@%%a:~/MyBookStore/output/cache_log output\
+	)
 	if !count! == 1 (
-		ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "cd ~/MyBookStore;sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/catalog_log ./output"
-		scp -i 677kp32144321.pem ec2-user@%%a:~/MyBookStore/output/catalog_log output\
+		ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "cd ~/MyBookStore;sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/catalog1_log ./output"
+		scp -i 677kp32144321.pem ec2-user@%%a:~/MyBookStore/output/catalog1_log output\
 	)
 	if !count! == 2 (
-		ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "cd ~/MyBookStore;sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/order_log ./output"
-		scp -i 677kp32144321.pem ec2-user@%%a:~/MyBookStore/output/order_log output\
+		ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "cd ~/MyBookStore;sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/catalog0_log ./output"
+		scp -i 677kp32144321.pem ec2-user@%%a:~/MyBookStore/output/catalog0_log output\
+	)
+	if !count! == 3 (
+		ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "cd ~/MyBookStore;sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/order1_log ./output"
+		scp -i 677kp32144321.pem ec2-user@%%a:~/MyBookStore/output/order1_log output\
+	)
+	if !count! == 4 (
+		ssh -o "StrictHostKeyChecking no" -i 677kp32144321.pem ec2-user@%%a "cd ~/MyBookStore;sudo docker cp mybookstore32144321:/usr/src/MyBookStore/output/order0_log ./output"
+		scp -i 677kp32144321.pem ec2-user@%%a:~/MyBookStore/output/order0_log output\
 	)
 	set /a count += 1
 )

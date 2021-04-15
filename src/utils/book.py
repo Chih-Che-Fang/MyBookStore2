@@ -26,3 +26,25 @@ class Book(object):
 	#get book title and item number (for search request)
 	def get_title(self):
 		return {'item_number':self.item_number, 'title':self.title}
+
+	#encode book list in json format for resync request
+	#input: book list dictionary
+	#output: book list in json format
+	@staticmethod
+	def get_book_list(books):
+		res = []
+		for item_no in books:
+			res.append(books[item_no].get_info())
+		return res
+
+	#recover book list from resync reply message 
+	#input: book list json format
+	#output: book list dictionary
+	@staticmethod
+	def recover_book_list(books):
+		res = {}
+		for b in books:
+			item_number = b['item_number']
+			res[item_number] = Book(item_number, b['stock'], b['cost'], b['type'], b['title'])
+		return res
+	

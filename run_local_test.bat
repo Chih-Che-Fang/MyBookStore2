@@ -1,11 +1,5 @@
 REM Write initialization log to catalog & order server log
 del /Q .\output\*
-echo. 2> .\output\order_log
-echo init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day> .\output\catalog_log
-echo init,2,3,20,distributed systems,RPCs for Dummies>> .\output\catalog_log
-echo init,3,3,5,graduate school,Xen and the Art of Surviving Graduate School>> .\output\catalog_log
-echo init,4,3,15,graduate school,Cooking for the Impatient Graduate Student>> .\output\catalog_log
-echo. 2>> .\output\catalog_log
 
 REM  Write initial config info for local machine
 echo frontend,127.0.0.1:8000>config
@@ -33,8 +27,11 @@ start cmd /k docker run -p 8000-8005:8000-8005 --name mybookstore32144321 bookst
 timeout 20
 
 REM pull log from catalog & order server in the container
-docker cp mybookstore32144321:/usr/src/MyBookStore/output/catalog_log .\output
-docker cp mybookstore32144321:/usr/src/MyBookStore/output/order_log .\output
+docker cp mybookstore32144321:/usr/src/MyBookStore/output/catalog0_log .\output
+docker cp mybookstore32144321:/usr/src/MyBookStore/output/catalog1_log .\output
+docker cp mybookstore32144321:/usr/src/MyBookStore/output/order0_log .\output
+docker cp mybookstore32144321:/usr/src/MyBookStore/output/order1_log .\output
 docker cp mybookstore32144321:/usr/src/MyBookStore/output/client_log .\output
+docker cp mybookstore32144321:/usr/src/MyBookStore/output/cache_log .\output
 
 pause

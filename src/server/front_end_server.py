@@ -33,14 +33,18 @@ def search():
 	topic = request.args.get('topic')
 	
 	#Query the cache server for search operation
-	cache = requests.get('http://{}/search?topic={}'.format(lb.getAddress('cache'), topic)).json()
+	cache = lb.request('http://{}/search?topic={}'.format(lb.getAddress('cache'), topic))
 	
 	if len(cache) == 0:
 		#cache doesn't exist, redirect search request to catalog server
 		print('Frontend Server: Redirect search request to catalog server')
 		start_time = time.time()
-		res = requests.get('http://{}/query_by_topic?topic={}'.format(lb.getAddress('catalog'), topic)).json()
-		res_cache = requests.get('http://{}/put_search_cache?topic={}&res={}'.format(lb.getAddress('cache'), topic, json.dumps(res)))
+		
+		res = lb.request('http://{}/query_by_topic?topic={}'.format(lb.getAddress('catalog'), topic))
+
+		#put search result into cache
+		lb.request('http://{}/put_search_cache?topic={}&res={}'.format(lb.getAddress('cache'), topic, json.dumps(res)))
+
 		q_by_topic_monitor.add_sample(time.time() - start_time)
 		return res
 	else:
@@ -58,15 +62,18 @@ def lookup():
 	item_number = request.args.get('item_number')
 	
 	#Query the cache server for lookup operation
-	cache = requests.get('http://{}/lookup?item_number={}'.format(lb.getAddress('cache'), item_number)).json()
-	
+	cache = lb.request('http://{}/lookup?item_number={}'.format(lb.getAddress('cache'), item_number))
+
 	if len(cache) == 0:
 		#cache doesn't exist, redirect search request to catalog server
 		print('Frontend Server: Redirect lookup request to catalog server')
 		start_time = time.time()
 		
-		res = requests.get('http://{}/query_by_item?item_number={}'.format(lb.getAddress('catalog'), item_number)).json()
-		res_cache = requests.get('http://{}/put_lookup_cache?res={}'.format(lb.getAddress('cache'), json.dumps(res))).json()
+		res = lb.request('http://{}/query_by_item?item_number={}'.format(lb.getAddress('catalog'), item_number))
+		
+		#put search result into cache
+		lb.request('http://{}/put_lookup_cache?res={}'.format(lb.getAddress('cache'), json.dumps(res)))
+		
 		q_by_item_monitor.add_sample(time.time() - start_time)
 		return res
 	else:
@@ -84,7 +91,7 @@ def buy():
 
 	#redirect search request to order server
 	start_time = time.time()
-	res = requests.get('http://{}/buy?item_number={}'.format(lb.getAddress('order'), item_number)).json()
+	res = lb.request('http://{}/buy?item_number={}'.format(lb.getAddress('order'), item_number))
 	buy_monitor.add_sample(time.time() - start_time)
 	
 	return res
