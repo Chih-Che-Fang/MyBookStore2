@@ -9,9 +9,9 @@
 test1: (Cache) Perform search methods with cache correctly.  
 test2: (Cache) Perform lookup methods with cache correctly. 
 test3: (Loadbalance) frontend server direct requests to servers evenly  
-test3: (Replication and Consistency) Run Buy operations and update the stock of the item correctly  
-test4: (Replication and Consistency + Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
-test5: (Replication and Consistency) All catalog replicas and cache have the same bookstore information after serveral stock updates  
+test3: (Replication Consistency) Run Buy operations and update the stock of the item correctly  
+test4: (Replication Consistency + Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
+test5: (Replication Consistency) All catalog replicas and cache have the same bookstore information after serveral stock updates  
 **[Final Milestone]**  
 test6: (Loadblance + Fault tolerance) Frontend server correctly receive heart beat from order/catalog serverand tolerate 1 replica fail  
 test7: (Fault tolerance) Frontend server reissue failed HTTP request correctly  
