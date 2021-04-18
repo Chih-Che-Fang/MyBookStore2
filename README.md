@@ -8,16 +8,13 @@
 **[Intermediate Milestone]**  
 test1: (Cache) Perform search methods with cache correctly.  
 test2: (Cache) Perform lookup methods with cache correctly. 
-test3: (Loadbalance) frontend server direct requests to servers evenly  
-test3: (Replication Consistency) Run Buy operations and update the stock of the item correctly  
-test4: (Replication Consistency + Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
-test5: (Replication Consistency) All catalog replicas and cache have the same bookstore information after serveral stock updates  
+test3: (Replication/Cache Consistency + Loadbalance) Process Buy request and update the book stock correctly with Frontend server direct requests to servers evenly. Also check the cache consistency after several buy transaction  
+test4: (Replication/Cache Consistency + Race Condition) 4 concurrent clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
+ 
 **[Final Milestone]**  
-test6: (Loadblance + Fault tolerance) Frontend server correctly receive heart beat from order/catalog serverand tolerate 1 replica fail  
-test7: (Fault tolerance) Frontend server reissue failed HTTP request correctly  
-test8: (Fault tolerance) Catalog server can correctly recover from a fail and resync with replicas  
-test9: (Replication + Fault tolerance) replica can identify peer failing and elect new primary server, tolerating 1 replica fail  
-test10: Run above test cases, but deploy servers on 5 remote EC2 machines, with each of the components and replicas on different machines  
+test6: (Fault tolerance) After 1 catalog server crashed, Frontend server can still correctly process update and query request. Alive replica will take over the primary job.  
+test7: (Fault tolerance) Catalog server can correctly recover from a fail and resync with replicas  
+test8: Run above test cases, but deploy servers on 5 remote EC2 machines, with each of the components and replicas on different machines  
 
 # How to run?  
 
