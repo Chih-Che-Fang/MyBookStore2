@@ -7,7 +7,7 @@
 **Test Cases:**   
 **[Intermediate Milestone]**  
 test1: (Cache) Perform search methods with cache correctly.  
-test2: (Cache) Perform lookup methods with cache correctly. 
+test2: (Cache) Perform lookup methods with cache correctly.  
 test3: (Replication/Cache Consistency + Loadbalance) Process Buy request and update the book stock correctly with Frontend server direct requests to servers evenly. Also check the cache consistency after several buy transaction  
 test4: (Replication/Cache Consistency + Race Condition) 4 concurrent clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
  
