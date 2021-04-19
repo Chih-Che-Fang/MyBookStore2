@@ -36,19 +36,34 @@ Authors: Chih-Che Fang
 
 
 
-## Operation Description:  
-- The **front end server** supports three operations:  
-**search(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
-**lookup(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
-**buy(item_number)**: Allows client to buy a book with the item number  
+## REST API Description:  
+### Frontend Server
+- **search(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
+- **lookup(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
+- **buy(item_number)**: Allows client to buy a book with the item number  
+- **hear_beat(server_type, serer_idx):** Process heart beat messages from backen servers. This API allows the frotnend server to monitor the health of backend servers  
 
-- The **catalog server** supports three operations:  
-**query_by_topic(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
-**query_by_item(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
-**update(item_number, cost, stock_update)**: Allows client to update cost or update the stock of book  
 
-- The **order server** supports three operations:  
+### Catalog Server 
+- **query_by_topic(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
+- **query_by_item(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
+- **update(item_number, cost, stock_update)**: Allows client to update cost or update the stock of book  
+- **shutdown():** The API will shut down the catalog server, simulating a server crash fault  
+- **recover():** The API will shut down the catalog server, simulating a server crash fault  
+- **hear_beat(server_type, serer_idx):** Process heart beat messages from backen servers. This API allows the frotnend server to monitor the health of backend servers  
+- **resync(server_idx):** This API process resync message from a just recovered server. This API allows crashed server to sync in-memory book database with replicas.
+- **internal_update(book, cost, stock):** Process inernal update requests from replicas. This API is part of replication protocaol and used for syncronization mechansim between replicas 
+
+
+### Order Server   
 **buy(item_number)**: Allows the user to buy a book with a certain item number
+
+### Cache Server
+- **search(topic)**: Process search request from frontend server, it will return cache if it has the cache for the search request  
+- **lookup(item_number)**: Process search request from frontend server, it will return cache if it has the cache for the search request  
+- **put_search_cache(topic, res):**: The API allows frontend server to put search result into the search cache  
+- **put_lookup_cache(topic, res):**: The API allows frontend server to put lookup result into the lookup cache  
+- **invalidate_cache(item_number):** The API allows catalog server to invalidate cache in cache server, forcing the cache server to remove outdated cache information  
 
 ## Sequence Diagram
 **Client/Server Interaction Workflow**  
