@@ -28,7 +28,7 @@ Authors: Chih-Che Fang
 ### Client Package
 - **Client:** A class used to perform test cases by sending multiple HTTP requests to the frontend server  
 
-### Util Package
+### Utils Package
 - **Monitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
 - **Book:** A class used to store all book's detailed information like cost, title, topic, ...etc  
 - **Config:** Store the address and health status of all servers  
