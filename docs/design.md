@@ -117,12 +117,20 @@ Since each replica has global knowledge about the address/port and health status
 
 ## Fault Tolerance
 ### Fault Detection - Heart-Beat Mechanism
-![Heartbeat diagram](./Heartbeat.PNG "Heartbeat")
+![Heartbeat diagram](./Heartbeat.PNG "Heartbeat")  
+We let replicas send hear beat message to frontend server and other replicas every second. Each server also set a heart beat listener to monitor the health of other replicas every second. Once a listener dosen't receive a heart beat from a certain server, the listener will mark that server as "died"   
+
 
 ### Primary Takeover
-Each replias know the id and health of other replicas. After detection, it can easily determin the new primary server by choosing the alive replica with smallest id. It can also know whether itself is a primary or not.
+Each replias know the id and health status of all other replicas. After detection of a crash fault, it can easily determin the new primary server by choosing the alive replica with smallest id. It can also know whether itself is a primary or not.
 
 ### Resynchronization
+![Resync diagram](./Resync.PNG "Resync")  
+After the crashed server recovered from a faliure, it will:   
+1.first send resync message to alive replica.  
+2.Replica re-slect primary server  
+3.Receive bookstore database information repsonse and update its state  
+4.Re-select primary server  
 
 
 ## Transaction Request Format
