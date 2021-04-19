@@ -36,19 +36,34 @@ Authors: Chih-Che Fang
 
 
 
-## Operation Description:  
-- The **front end server** supports three operations:  
-**search(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
-**lookup(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
-**buy(item_number)**: Allows client to buy a book with the item number  
+## REST API Description:  
+### Frontend Server
+- **search(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
+- **lookup(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
+- **buy(item_number)**: Allows client to buy a book with the item number  
+- **hear_beat(server_type, serer_idx):** Process heart beat messages from backen servers. This API allows the frotnend server to monitor the health of backend servers  
 
-- The **catalog server** supports three operations:  
-**query_by_topic(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
-**query_by_item(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
-**update(item_number, cost, stock_update)**: Allows client to update cost or update the stock of book  
 
-- The **order server** supports three operations:  
-**buy(item_number)**: Allows the user to buy a book with a certain item number
+### Catalog Server 
+- **query_by_topic(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
+- **query_by_item(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
+- **update(item_number, cost, stock_update)**: Allows client to update cost or update the stock of book  
+- **shutdown():** The API will shut down the catalog server, simulating a server crash fault  
+- **recover():** The API will shut down the catalog server, simulating a server crash fault  
+- **hear_beat(server_type, serer_idx):** Process heart beat messages from backen servers. This API allows the frotnend server to monitor the health of backend servers  
+- **resync(server_idx):** This API process resync message from a just recovered server. This API allows crashed server to sync in-memory book database with replicas.
+- **internal_update(book, cost, stock):** Process inernal update requests from replicas. This API is part of replication protocaol and used for syncronization mechansim between replicas 
+
+
+### Order Server   
+- **buy(item_number)**: Allows the user to buy a book with a certain item number
+
+### Cache Server
+- **search(topic)**: Process search request from frontend server, it will return cache if it has the cache for the search request  
+- **lookup(item_number)**: Process search request from frontend server, it will return cache if it has the cache for the search request  
+- **put_search_cache(topic, res):**: The API allows frontend server to put search result into the search cache  
+- **put_lookup_cache(topic, res):**: The API allows frontend server to put lookup result into the lookup cache  
+- **invalidate_cache(item_number):** The API allows catalog server to invalidate cache in cache server, forcing the cache server to remove outdated cache information  
 
 ## Sequence Diagram
 **Client/Server Interaction Workflow**  
@@ -58,10 +73,10 @@ Authors: Chih-Che Fang
 
 # How it Works
  ## Bootstraping & Communication
-I used Flask to implement each server. I start the frontend server, catalog server, order server in sequence, and finally launch the client to send an HTTP request to the frontend server.
+I used Flask to implement each server. I start the frontend server, cache server, 2 replicated catalog server, 2 replicated order server in sequence, and finally launch the client to send an HTTP request to the frontend server.  
 Each Client represents a thread so that multiple clients can request a single frontend server concurrently. Flask server supports multi-threaded so that the server will launch a new thread for processing each new client request. The single Client request is implemented as a synchronous request and will wait for the frontend server's response.  When the frontend server receives the client's request, it just launches a new HTTP request to the corresponding server.
 
-Servers can know each other's IP addresses and ports by reading the config file. The catalog server will read from catalog_log to init the status of books. Book class is used to store all book's detailed information. Catalog and order server will output executed operation to catalog_log and order_log under the "output" folder. Initialization log has the following format:  
+Servers know each other's IP addresses and ports by reading the config file. The catalog server will read from init_bookstore to init the database of books. Book class is used to store all book's detailed information. Catalog and order server will output executed operation to catalog{id}_log and order{id}_log under the "output" folder. Initialization log has the following format:  
 
 Format = **[Operation item_number stock cost Count topic title]**  
 
@@ -76,7 +91,12 @@ Here is one example of book initialization information that a catalog used to in
 [init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day]  
 
 
-## Operation Request Format
+## Replica Protocol
+![Protocol diagram](./Protocol.PNG "Protocol")
+I adopt primary-backup as replication protocols.
+
+
+## Transaction Request Format
 **Lookup:**  
 request: [SERVER_IP:8000/lookup/item_number], Ex. http://127.0.0.1/lookup?item_number=1  
 response: {'item_number': item_number, 'stock':self.stock, 'cost': cost, 'type': type, 'title': title}, Ex. {'item_number': 1, 'stock':1000, 'cost': 50, 'type': distributed systems, 'title': How to get a good grade in 677 in 20 minutes a day.}  
@@ -99,8 +119,10 @@ Format = **[Type, IPAddress:Port]**
 Here is one example of configt file:  
 frontend,127.0.0.1:8080  
 catalog,127.0.0.1:8081  
-order,127.0.0.1:8082  
- 
+catalog,127.0.0.1:8082  
+order,127.0.0.1:8083  
+order,127.0.0.1:8084  
+cache,127.0.0.1:8085  
 
 ## Concurency / Race Condition Protection
 All books' information is stored in the catalog server's memory and shared by multiple threads concurrently. When a flask server receives a new client request, it will launch a new thread to process the message.  Therefore, when updating and read the book's information, we used a lock to make sure the whole operation is atomic in all servers. For example, a buy request from the order server will check the book's stock, and if there is enough stock, the server will then decrease the stock by 1. Otherwise, the buy operation should return a "fail" result. Consider the following error case:  
