@@ -5,7 +5,7 @@ Authors: Chih-Che Fang
 # System Design
 
 ## UML Class Diagram
-![UML diagram](./UML.png "UML")
+![UML diagram](./UML_BACKEND.png "UML")
 
 ## Class Discription  
 - **frontend_server:** frontend server that process and dispatch client's request  
@@ -249,7 +249,8 @@ bought book 2
 **Result:** Pass, All test1 ~ test 4 log is the same as run in local machine
 
 # Evaluation and Measurements
-## 1.	Compute the average response time per client search request by measuring the end-to-end response time seen by a client
+## 1.	Compute the average response time (query/buy) of your new systems.  What is the response time with and without caching? How much does caching help?
+
 
 Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
 ------------ | ------------- | ------------- | -------------
