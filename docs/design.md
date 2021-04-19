@@ -522,6 +522,35 @@ See test cases 5 ~ test case 8
 <br /> 
 
 # Design Tradeoffs
+## Primary-Backup Replication Protocol V.S Local-Write Protocol
+We must choose one replication protocol for replication consistency. The pros of primary-backup protocol are:  
+1. Easier to implement and guarantee sequential consistency
+
+The cons of primary-backup protocol are:   
+1. Primary perform all updates and may become bottleneck  
+2. Block on write until all replicas are notified, potential to increase write latency  
+
+I finally choose primary-backup replication. The reason is that this allows me to gurantee consistency and prevent race condition easier under multiple clients enviornments. However, the cost is that primary may become bottleneck and increasing on write latency.  
+
+
+## Round-Robin Load Balancing V.S Weighted Round-Robin Load Balancing
+To imeplemnt load-blancer, we must choose one load-balancing algorithms. The pros of round-robin are:  
+1.Very easy to implement
+The cons of round-robin algorithm are:  
+1.If each backend replication have different computing power and network capability, we cannot optimize the workload to each server based on replication capability  
+
+I finally chose round-robin since we use AWS EC2 as our backen replicated servers. We can trust the auto-scaling ability provided by AWS EC2 and assume each replicated server has about the same computing power and network bandwidth.  Since round-robin is fair under assumption of eqaul replicated server, we can easily implement the algorithms.  
+
+## Server-push V.S Client-pull  
+To maintain the consistency between cache and catalog server, we need to choose one way of synchonization model. The pros of server-push model are:  
+1.Client don't need to keep polling the server, saving the effort of client  
+
+The cons of server-push model are:  
+1.If there are many clients, server might become bottleneck since it needs to send messages to all clients  
+
+I finally chose Server-push model since
+
+
 **Flask  V.S Django/Struts**  
 We must choose one of the web server framework to implement the servers, the pros of Django/Struts framework are:  
 1. It is a versatile framework and can be used for any website (social network, news site, content management, and more) with content in any format like HTML, XML, JSON, and more. It works in tandem with any client-side framework.  
@@ -545,37 +574,6 @@ The cons of Pessimistic Concurrency Control (Lock) is:
 
 We finally chose Pessimistic Concurrency Control (Lock) since race conditions happen too frequently when concurrent clients> 5. By doing so, we skip starvation and re-run problems. It also makes the design simpler. Besides, since only the catalog server uses the lock, it is easy to skip the deadlock problem.  
 
-**Thread Pool V.S Dynamically Creating New Thread**  
-To handle client HTTP requests, we can choose either to launch a new thread every time or use the existing thread pool to allocate thread to message processing task. The pros of Thread Pool is:  
-1.Shorter response time of client request since we don't need to create new thread dynamically  
-
-The cons are:  
-1. Higher complexity of system since we need to handle the creation and recycle of threads  
-2. Higher memory usage since we must maintain a certain amount of thread  
-3. Hard to debug  
-
-We finally choose Dynamically Creating New Thread since the HTTP thread doesn't have too many data attributes and creating is fast. Given that performance doesn't have too much difference and we want to simplify our design, we can dynamically creating a new thread to handle HTTP client requests. It also helps save memory usage.    
-
-**Dynamic Creation of EC2 Instances V.S Hot Stand-By EC2 Instances**  
-When launching multiple servers for server deployment, we must choose between whether to dynamically creating new instances or deploy peers on hot standby servers. The pros of dynamic creation of EC2 Instances are:  
-1. Lower cost of AWS EC2 instance (EC2s are billed by running time of instances)  
-
-The cons of a hot stand-by EC2 instance is:  
-1. Longer deployment time since we need to wait for instances to be created  
-2. Need to re-migrate and compile code every time we update our code  
-
-We finally chose Dynamic Creation of EC2 Instances since the cost is significant if we maintain a lot of running EC2 instances. We write a script to quickly creating a security group and instances when deploying.  
-
-
-**Open All TCP Port between Different Remote Server V.S Open only certain range of TCP Port between Different Remote Server**  
-To allow HTTP access permission between different servers so that servers can communicate with each other. We attached the Amazon security group to each Amazon EC2 instance to implement this permission control. The pros of opening all TCP Port between Different Remote Serve is:  
-1. Don't need to worry about port range change (Ex. Add/Deletion new port dynamically) as we may want to add a new port to a peer  
-2. Easy to configure  
-
-The cons are:  
-1.  Impaired security since if one of the servers is malicious, it can exploit and attack the opened port  
-
-We finally chose to open only a certain range of TCP ports between Different Remote Server. We use a script to automatically create a security group to save the effort of changing the port in the future.
 
 
 # How to Run It
