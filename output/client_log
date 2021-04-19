@@ -45,11 +45,12 @@ Client0: Send request http://127.0.0.1:8000/buy?item_number=1
 Client0: Get response {'result': 'Failed'}
 Client1: Send request http://127.0.0.1:8000/buy?item_number=2
 Client2: Send request http://127.0.0.1:8000/buy?item_number=2
+Client3: Send request http://127.0.0.1:8000/buy?item_number=2
 Client4: Send request http://127.0.0.1:8000/buy?item_number=2
 Client2: Get response {'result': 'Success'}
 Client4: Get response {'result': 'Success'}
-Client3: Get response {'result': 'Success'}
-Client1: Get response {'result': 'Failed'}
+Client1: Get response {'result': 'Success'}
+Client3: Get response {'result': 'Failed'}
 Client0: Send request http://127.0.0.1:8001/shutdown
 Client0: Get response {'result': 'Succeed'}
 Client0: Send request http://127.0.0.1:8000/buy?item_number=4

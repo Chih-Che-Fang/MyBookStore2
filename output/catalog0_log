@@ -23,10 +23,12 @@ update,1,na,-1
 update,1,na,-1
 query_by_item,1
 query_by_item,2
-update,2,na,-1
-update,2,na,-1
-update,2,na,-1
 query_by_item,2
+update,2,na,-1
+update,2,na,-1
+update,2,na,-1
+shutdown
+recover
 query_by_item,4
 query_by_item,4
 update,4,na,-1
@@ -34,4 +36,5 @@ query_by_item,4
 update,4,na,-1
 query_by_item,4
 update,4,na,-1
+resync,1
 query_by_item,4
