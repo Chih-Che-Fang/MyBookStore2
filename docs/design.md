@@ -126,11 +126,12 @@ Each replias know the id and health status of all other replicas. After detectio
 
 ### Resynchronization
 ![Resync diagram](./Resync.PNG "Resync")  
-After the crashed server recovered from a faliure, it will:   
-1.first send resync message to alive replica.  
+After the crashed server recovered from a faliure, it will:  
+1.Send resync message to alive replica.  
 2.Replica re-slect primary server  
 3.Receive bookstore database information repsonse and update its state  
 4.Re-select primary server  
+5.Send hear beat message to frontend server to notify that the server is recovered again  
 
 
 ## Transaction Request Format
@@ -161,8 +162,8 @@ order,127.0.0.1:8083
 order,127.0.0.1:8084  
 cache,127.0.0.1:8085  
 
-## Concurency / Race Condition Protection
-All books' information is stored in the catalog server's memory and shared by multiple threads concurrently. When a flask server receives a new client request, it will launch a new thread to process the message.  Therefore, when updating and read the book's information, we used a lock to make sure the whole operation is atomic in all servers. For example, a buy request from the order server will check the book's stock, and if there is enough stock, the server will then decrease the stock by 1. Otherwise, the buy operation should return a "fail" result. Consider the following error case:  
+## Concurency / Race Condition Protection Proof
+All books' information is stored in the catalog server's memory and shared by multiple threads concurrently. When a flask server receives a new client request, it will launch a new thread to process the message.  Therefore, when updating and read the book's information, we used a lock to make sure the whole update transaction is atomic in all servers. For example, a buy request from the order server will check the book's stock, and if there is enough stock, the server will then decrease the stock by 1. Otherwise, the buy operation should return a "fail" result. Consider the following error case without using lock:  
 
 client 1 queried the stock of book item_number 1 is 1  
 client 2 queried the stock of book item_number 1 is 1  
@@ -180,8 +181,10 @@ client 2 queried the stock of book item_number 1 is 0
 client 2 buy failed  
 releaseLock()  
 
-## Logging Mechanism
-We store the executed transaction with a file name of client_log, cache_log, catalog_log, order_log in each server/client respectively:  
+Since we adopt primary-backup replication protocol, only primary server can update the stock information at the same time. Using lock to prevent race condition on primary server also prevent race condition in all replicas. Therefore, the system I designed is able to prevent race condition.  
+
+## Logging System
+Under output folder, I store the executed transaction with a file name of client_log, cache_log, catalog_log, order_log in each server/client respectively:  
 Format = **[Operation args]**  
 
 **Operation:** Execuated operation name  
@@ -202,37 +205,42 @@ We will create a key pair in the AWS account for later access to EC2 instances
 We dynamically create a security group and open HTTP port 8000-8002, 22 for servers
 
 ### 4.Dynamic server creation
-We have pr-created Amazon AMI image that has Docker installed. We dynamically create a security group that allows HTTP REST API access permission. We create an EC2 instance from the pre-created AMI image and attached it with the created security group. We tag each EC2 instance with a tag MyBazaar32144321" so that we can later access them and release them.
+We have pr-created Amazon AMI image that has Docker installed. We dynamically create a security group that allows HTTP REST API access permission. We create an EC2 instance from the pre-created AMI image and attached it with the created security group. We tag each EC2 instance with a tag MyBookStore32144321" so that we can later access them and release them.
 
 ### 5.Dynamic code migration and docker image build-up
 We migrate the latest code to the remote server using SCP and invoke script ec2_setup.sh to build the docker image, run the docker image, and start the corresponding server on that EC2 machine
 
-### 6.Perform test 1 ~ test 4
-We automatically build a docker image for the client and run the client in a container. Then the client can launch multiple threads and perform multiple HTTP requests to the frontend server. That is, the client will run test1 ~ test4 in order and send requests to the frontend server.
+### 6.Perform all testing cases
+We automatically build a docker image for the client and run the client in a container. Then the client can launch multiple threads and perform multiple HTTP requests to the frontend server. That is, the client will run all test cases in order and send requests to the frontend server.
 
 ### 7.Gather test output(log) for validation
-We use SCP to pull test output under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog_log and order_log, which represent the catalog server's log and order server's log respectively.
+We use SCP to pull test logs under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog_log and order_log, which represent the catalog server's log and order server's log respectively.
 
 ### 8.Release AWS resource
-We terminate all EC2 instances, delete the security group, and key pairs created previously at the end of the test
+We terminate all EC2 instances, delete the security group, and key pairs & temporary files created previously at the end of the test
 
 # Validation & Test
 ## Test Cases
-- **test1 (Intermediate Milestone):** Perform search methods correctly.  
-- **test2 (Intermediate Milestone):** Perform lookup methods correctly.  
-- **test3 (Intermediate Milestone):** Run Buy operations and update the stock of the item correctly  
-- **test4 (Intermediate Milestone):** (Race Condition) 4 clients buy the book "RPCs for Dummies" that only has 3 stock concurrently, only 3 clients can buy the book  
-- **Test5 (Final Milestone):** Run test1~test4 again, but deploy servers on different AWS EC2 instances.  
+- **test1:** (Verify Search transaction + Cache) Perform search requests for each topic twice, verify we get the same and correct result  
+- **test2:** (Verify Lookup transaction + Cache) Perform lookup methods for each book twice, verify we get the same and correct result  
+- **test3:** (Verify Buy transaction + Replication/Cache Consistency + Loadbalance) Process Buy request and update the book stock correctly with Frontend server direct requests to servers evenly. Also check the cache consistency after several buy transaction  
+- **test4:** (Verify Replication/Cache Consistency + Race Condition Protection) 4 concurrent clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
+- **test5:** (Verify Fault tolerance) After primary catalog server crashed, Frontend server can still correctly process update and query requests. Check alive replica will take over the primary job correctly.  
+- **test6:** (Verify Fault tolerance) Primary catalog server can correctly recover from a fail and resync with replicas  
+- **test7:** (Verify Fault tolerance) Same with test5, but the crashed server is a replicated catalog server  
+- **test8:** (Verify Fault tolerance) Same with test 6, but the recovered server is a replicated catalog server   
+- **test9:** (Verify Distributed System) Run all of above test cases, but deploy servers on 5 remote EC2 machines, with each of the components and replicas on different machines
 
 ## Automatic Test Scripts
-- **run_local_test.bat:** This script will automatically start the frontend, catalog, and order server on the local machine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
+- **run_local_test.bat:** This script will automatically start the frontend, cache, catalog, and order server on the local machine in a container. Then, run a client in a container and perform all test cases in order on a local machine. Finally, store output under the output folder for validation.  
 
-- **run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying the corresponding server, on remote servers. Next, deploy a client on a local machine and perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
+- **run_distributed_test.bat:**  This script will automatically create 5 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying the corresponding server, on remote servers. Next, deploy a client on a local machine and perform all test cases in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
 
 ## Test Output (Log)  
 We store all testing output under the output folder and use them to validate the correctness of each test case. There are three types of logs:  
-- catalog_log: store all executed transaction on the catalog server  
-- order_log: store all executed transaction on the order server  
+- catalog{id}_log: store all executed transaction on the catalog server with id = {id}  
+- order{id}_log: store all executed transaction on the order server with id = {id}  
+- cache_log: store all executed transaction on the cache server  
 - client_log: store all executed HTTP request and response log for all concurrent clients  
 
 ## Verification of All Test Cases  
