@@ -486,91 +486,25 @@ Same logic as test 6
 **Result:** Pass, All test1 ~ test 8 log is the same as run in local machine
 
 # Evaluation and Measurements
-## 1.	Compute the average response time (query/buy) of your new systems.  What is the response time with and without caching? How much does caching help?
+## 1.	Compute the average response time (query/buy) of your new systems.  What is the response time with and without caching? How much does caching help?  
 
+### Search Transaction  
+![Q1_Search diagram](./Q1_Search.PNG "Q1_Search")  
 
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
------------- | ------------- | ------------- | -------------
-79.524ms | 79.636ms | 86.7036ms  | 94.7036ms
+### Lookup Transaction  
+![Q1_Lookup diagram](./Q1_Lookup.PNG "Q1_Lookup")  
+
+### Buy Transaction  
+![Q1_Buy diagram](./Q1_Buy.PNG "Q1_Buy")  
 
 PS: all response time sampled from 1000 requests  
 
 - Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle client requests, the server still needs time to process the request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.
 
-## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
-**Breakdown of Search Operation:**  (Flow: Client -> frontend -> catalog)  
-Avg response time of **Frontend Server** to **Search** request seen by Client (**Client <-> Frontend Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | -------------
-79.524ms | 79.636ms | 86.7036ms  | 94.7036ms  
+## 2.	Construct a simple experiment that issues orders or catalog updates (i.e., database writes) to invalidate the cache and maintain cache consistency. What is the overhead of cache consistency operations? What is the latency of a subsequent request if it sees a cache miss?  
 
+## 3. Construct an experiment to show your fault tolerance does the work as you expect. You should start your system with no failures and introduce a crash fault and show that the fault is detected and the other replica can mask this fault. Also be sure to show the process of recovery and resynchronization.  
 
-Avg response time of **Catalog Server** to **Query by Topic** request seen by Frontend Server (**Frontend Server <-> Catalog Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
------------- | ------------- | ------------- | -------------
-4.6953ms | 4.6999ms | 4.8698ms  | 4.8789ms  
-
-
-PS: all response time is calculated from 1000 requests  
-
-From the result, we see:
-- Most of the time spent on the route between Client and Frontend server  
-- As concurrent client increases, the averaged response time also increases. The reason might be that too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the average time increases (Even though all servers adopted multi-thread to handle with client requests, the server still need time to process requests and launch a new thread).  
-- Averaged response time between the Catalog server and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers are deployed on AWS EC2 instances, the physical distance between the Catalog server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less.  
-
-<br />
-<br />
-<br />
-
-**Breakdown of Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
-Avg response time of **Frontend Server** to **Buy request** seen By Client (**Client <-> Frontend Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | -------------
-94.972ms | 94.424ms | 94.999ms  | 110.733ms  
-
-
-Avg response time of **Order Server** to **Buy request** seen by Frontend Server  (**Frontend Server <-> Order Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | -------------
-15.8532ms | 15.636ms | 15.9036ms  | 16.0036ms  
-
-Avg response time of **Catalog Server** to **Update** request** seen by Order Server  (**Order Server <-> Catalog Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | ------------
-4.623ms | 4.782ms | 4.9531ms  | 5.321ms  
-
-
-Avg response time of **Catalog Server** to **Query by Item Number** request seen by Order Server  (**Order Server <-> Catalog Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | -------------
-5.6154ms | 5.636ms | 5.64ms  | 6.309ms  
-
-PS: all response time is calculated from 1000 requests  
-
-From the result, we see:
-- Most of the time spent on the route between Client and Frontend server  
-- From the order server's perspective, an average response time of the "Update" operation is longer than "Query by Item Number". Also, as concurrent client increases, the operation time increases. The reason might be that we used a lock in the "update" operation but not in "Query by Item Number". As client increases, concurrent will compete for the lock and therefore increase the response time of the "Update" operation  
-- As concurrent client increases, the averaged response time also increases. The reason might be that too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the average time increases (Even though all servers adopted multi-thread to handle with client requests, the server still need time to process requests and launch a new thread).  
-- Averaged response time between Catalog server, Order Server, and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers are deployed on AWS EC2 instances, the physical distance between the Catalog/Order server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less. 
-<br />
-<br />
-<br />
-
-**Breakdown of Lookup operation:**  (Flow: Client -> fronend -> catalog)  
-Avg response time of **Frontend Server** to **Lookup** request seen by Client  (**Client <-> Frontend Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
------------- | ------------- | ------------- | -------------
-76.293ms | 78.131ms | 86.386ms  | 92.9996ms  
-
-
-Avg response time of **Catalog Server** to **Query by Item Number** request seen by Frontend Server  (**Frontend Server <-> Catalog Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
------------- | ------------- | ------------- | -------------
-4.456ms | 4.3929ms | 4.4558ms  | 4.5089ms  
-
-PS: all response time is calculated from 1000 requests  
-
-- From the result, we see the same results as **Search** operation, please check the comment in **Search** operation section. Also, we observed "Search" request is slightly slower than the "Lookup" request but slightly faster than "buy" requests (As buy request cost more round-trip time between remote servers).  
 
 <br />
 <br />
