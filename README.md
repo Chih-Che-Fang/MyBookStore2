@@ -14,8 +14,8 @@ test4: (Replication/Cache Consistency + Race Condition) 4 concurrent clients buy
 **[Final Milestone]**  
 test5: (Fault tolerance) After primary catalog server crashed, Frontend server can still correctly process update and query request. Alive replica will take over the primary job.  
 test6: (Fault tolerance) Primary catalog server can correctly recover from a fail and resync with replicas  
-test7: (Fault tolerance) Same with test5, but the crashed server is a replicated catalog server
-test8: (Fault tolerance) Same with test 6, but the recovered server is a replicated catalog server 
+test7: (Fault tolerance) Same with test5, but the crashed server is a replicated catalog server  
+test8: (Fault tolerance) Same with test 6, but the recovered server is a replicated catalog server   
 test9: Run above test cases, but deploy servers on 5 remote EC2 machines, with each of the components and replicas on different machines  
 
 # How to run?  
