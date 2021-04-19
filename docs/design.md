@@ -135,6 +135,10 @@ After the crashed server recovered from a faliure, it will:
 4.Re-select primary server  
 5.Send hear beat message to frontend server to notify that the server is recovered again  
 
+### Simulation for Server Shutdown and Recover
+I implement two REST API in catalog server for simulating server crash & recover:  
+- **Shutdown:** This API will stop the heart beat of catalog server so that frontend & other replica will detect the server crash after 1 second. Frontend server's loadbalancer will not direct any HTTP request to the crashed server anymore. Similarily, the other replica will detect the crash of the server, if the crashed server was a primary, the replica will reselect a replica to take over the primary server role.  
+- **Recover:** This API will restart the heart beater of the catalog server. In this way, the frontend & other replica will soon detect the recover of the catalog server and the loadbalancer will mark the server as alive and continue directing HTTP requests to the server as before. The other replica will reselect the primary server. The crashed will send a resync reqeuest to other replicas to sync the current book store database.  
 
 ## Transaction Request Format
 **Lookup:**  
@@ -499,12 +503,19 @@ Same logic as test 6
 
 PS: all response time sampled from 1000 requests  
 
-- Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle client requests, the server still needs time to process the request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.
+- Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle client requests, the server still needs time to process the request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.  
+- Cache improve both query transaction's averaged response time by about 3 ~ 4ms, it fits what we found out in Lab2 that latency between EC2 machine is quite low (about 4ms). Cache only save the time of the latency between frontend server and catalog server  
+- Cache cannot improve the averaged response time of buy transaction. It makes sense since we only use cache in query transaction.  
 
 ## 2.	Construct a simple experiment that issues orders or catalog updates (i.e., database writes) to invalidate the cache and maintain cache consistency. What is the overhead of cache consistency operations? What is the latency of a subsequent request if it sees a cache miss?  
+The overhead of cache consistency is the time used to invalidate cache + subsequent request if it sees a cache miss.  
+The averaged response time of invalidating cache = 0.27ms  (Note that this is the time to create a new thread that sending invalidation HTTP request since I use asynchronous request and don't need to wait for response)  
+The averaged response time subsequent request if it sees a cache miss = time to request catalog server + time to put new cache into cache server = 4.1ms  
+Total overhead = 4.1 + 0.27ms = 4.37ms  
+We need this overhead every time catalog server update its database. If write transaction is less than read, it is worthy to use cache for improving the read latency. However, if write transaction is much more than read operation, then the benfit of cache is not obvious since cache only improve query latency 3~4 ms.  
 
 ## 3. Construct an experiment to show your fault tolerance does the work as you expect. You should start your system with no failures and introduce a crash fault and show that the fault is detected and the other replica can mask this fault. Also be sure to show the process of recovery and resynchronization.  
-
+See test cases 5 ~ test case 8  
 
 <br />
 <br />
