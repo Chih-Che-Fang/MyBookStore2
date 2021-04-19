@@ -126,7 +126,7 @@ Each replias know the id and health status of all other replicas. After detectio
 
 ### Resynchronization
 ![Resync diagram](./Resync.PNG "Resync")  
-After the crashed server recovered from a faliure, it will: 
+After the crashed server recovered from a faliure, it will:  
 1.Send resync message to alive replica.  
 2.Replica re-slect primary server  
 3.Receive bookstore database information repsonse and update its state  
