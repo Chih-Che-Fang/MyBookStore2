@@ -95,21 +95,25 @@ Here is one example of book initialization information that a catalog used to in
 ![Protocol diagram](./Protocol.PNG "Protocol")
 
 ### Synchronization
+![Synchronization diagram](./Synchronization.PNG "Synchronization")
+
 I adopt primary-backup as replication protocols. Both two replicated catalog/order support query operation. When the catalog server receive update requests (Ex. Buy transaction) it will have the following mechansim.  
 - If primary server:  
-1.Perform update if it is valid (Ex. stock > 0)  
-2.Notify replicas to update  
-3.Notify cache server to invalidate cache  
-4.Write execuated transaction to log
-5.Respond update result to caller  
+ 1.Perform update if it is valid (Ex. stock > 0)  
+ 2.Notify replicas to update  
+ 3.Notify cache server to invalidate cache  
+ 4.Write execuated transaction to log
+ 5.Respond update result to caller  
 
 - If replicated server:  
-1. Notify primary to update  
-2. Wait for primary server's reponse  
-3. Perform update transaction if it is valid. Otherwise, return failed message to caller  
-4. Write execuated transaction to log  
-5. Respond update to caller  
+ 1. Notify primary to update  
+ 2. Wait for primary server's reponse  
+ 3. Perform update transaction if it is valid. Otherwise, return failed message to caller  
+ 4. Write execuated transaction to log  
+ 5. Respond update to caller  
 
+### Primary Selection
+Since each replica has global knowledge about the address/port and health status of replica. We can always use the healthy replica with smallest id as the primary server. All replicas use this rule to know whether itself is a primary or a normal replica  
 
 ### Fault Tolerance
 
