@@ -162,8 +162,8 @@ order,127.0.0.1:8083
 order,127.0.0.1:8084  
 cache,127.0.0.1:8085  
 
-## Concurency / Race Condition Protection
-All books' information is stored in the catalog server's memory and shared by multiple threads concurrently. When a flask server receives a new client request, it will launch a new thread to process the message.  Therefore, when updating and read the book's information, we used a lock to make sure the whole operation is atomic in all servers. For example, a buy request from the order server will check the book's stock, and if there is enough stock, the server will then decrease the stock by 1. Otherwise, the buy operation should return a "fail" result. Consider the following error case:  
+## Concurency / Race Condition Protection Proof
+All books' information is stored in the catalog server's memory and shared by multiple threads concurrently. When a flask server receives a new client request, it will launch a new thread to process the message.  Therefore, when updating and read the book's information, we used a lock to make sure the whole update transaction is atomic in all servers. For example, a buy request from the order server will check the book's stock, and if there is enough stock, the server will then decrease the stock by 1. Otherwise, the buy operation should return a "fail" result. Consider the following error case without using lock:  
 
 client 1 queried the stock of book item_number 1 is 1  
 client 2 queried the stock of book item_number 1 is 1  
@@ -181,8 +181,10 @@ client 2 queried the stock of book item_number 1 is 0
 client 2 buy failed  
 releaseLock()  
 
-## Logging Mechanism
-We store the executed transaction with a file name of client_log, cache_log, catalog_log, order_log in each server/client respectively:  
+Since we adopt primary-backup replication protocol, only primary server can update the stock information at the same time. Using lock to prevent race condition on primary server also prevent race condition in all replicas. Therefore, the system I designed is able to prevent race condition.  
+
+## Logging System
+Under output folder, I store the executed transaction with a file name of client_log, cache_log, catalog_log, order_log in each server/client respectively:  
 Format = **[Operation args]**  
 
 **Operation:** Execuated operation name  
@@ -203,19 +205,19 @@ We will create a key pair in the AWS account for later access to EC2 instances
 We dynamically create a security group and open HTTP port 8000-8002, 22 for servers
 
 ### 4.Dynamic server creation
-We have pr-created Amazon AMI image that has Docker installed. We dynamically create a security group that allows HTTP REST API access permission. We create an EC2 instance from the pre-created AMI image and attached it with the created security group. We tag each EC2 instance with a tag MyBazaar32144321" so that we can later access them and release them.
+We have pr-created Amazon AMI image that has Docker installed. We dynamically create a security group that allows HTTP REST API access permission. We create an EC2 instance from the pre-created AMI image and attached it with the created security group. We tag each EC2 instance with a tag MyBookStore32144321" so that we can later access them and release them.
 
 ### 5.Dynamic code migration and docker image build-up
 We migrate the latest code to the remote server using SCP and invoke script ec2_setup.sh to build the docker image, run the docker image, and start the corresponding server on that EC2 machine
 
-### 6.Perform test 1 ~ test 4
-We automatically build a docker image for the client and run the client in a container. Then the client can launch multiple threads and perform multiple HTTP requests to the frontend server. That is, the client will run test1 ~ test4 in order and send requests to the frontend server.
+### 6.Perform all testing cases
+We automatically build a docker image for the client and run the client in a container. Then the client can launch multiple threads and perform multiple HTTP requests to the frontend server. That is, the client will run all test cases in order and send requests to the frontend server.
 
 ### 7.Gather test output(log) for validation
-We use SCP to pull test output under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog_log and order_log, which represent the catalog server's log and order server's log respectively.
+We use SCP to pull test logs under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog_log and order_log, which represent the catalog server's log and order server's log respectively.
 
 ### 8.Release AWS resource
-We terminate all EC2 instances, delete the security group, and key pairs created previously at the end of the test
+We terminate all EC2 instances, delete the security group, and key pairs & temporary files created previously at the end of the test
 
 # Validation & Test
 ## Test Cases
