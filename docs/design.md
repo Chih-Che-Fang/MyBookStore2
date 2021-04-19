@@ -90,6 +90,8 @@ Format = **[Operation item_number stock cost Count topic title]**
 Here is one example of book initialization information that a catalog used to init book status:  
 [init,1,3,10,distributed systems,How to get a good grade in 677 in 20 minutes a day]  
 
+## Load Balance Algorithm
+I adopt round-robin algorithm to request each server evenly  
 
 ## Replica Protocol
 ![Protocol diagram](./Protocol.PNG "Protocol")
@@ -246,35 +248,97 @@ We store all testing output under the output folder and use them to validate the
 ## Verification of All Test Cases  
 ### Test1 output: Perform search methods correctly  
 **Client Log:**  
-Client0: Send request http://127.0.0.1:8000/search?topic=distributed+systems  
-Client0: Get response {'result': [{'item_number': '1', 'title': 'How to get a good grade in 677 in 20 minutes a day'}, {'item_number': '2', 'title': 'RPCs for Dummies'}]}  
-Client0: Send request http://127.0.0.1:8000/search?topic=graduate+school  
-Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art of Surviving Graduate School'}, {'item_number': '4', 'title': 'Cooking for the Impatient Graduate Student'}]}  
+Client0: Send request http://127.0.0.1:8000/search?topic=distributed%20systems
+Client0: Get response {'result': [{'item_number': '1', 'title': 'How to get a good grade in 677 in 20 minutes a day'}, {'item_number': '2', 'title': 'RPCs for Dummies'}]}
+Client0: Send request http://127.0.0.1:8000/search?topic=graduate%20school
+Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art of Surviving Graduate School'}, {'item_number': '4', 'title': 'Cooking for the Impatient Graduate Student'}, {'item_number': '5', 'title': 'How to finish Project 3 on time'}, {'item_number': '6', 'title': 'Why theory classes are so hard'}]}
+Client0: Send request http://127.0.0.1:8000/search?topic=distributed%20systems
+Client0: Get response {'result': [{'item_number': '1', 'title': 'How to get a good grade in 677 in 20 minutes a day'}, {'item_number': '2', 'title': 'RPCs for Dummies'}]}
+Client0: Send request http://127.0.0.1:8000/search?topic=graduate%20school
+Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art of Surviving Graduate School'}, {'item_number': '4', 'title': 'Cooking for the Impatient Graduate Student'}, {'item_number': '5', 'title': 'How to finish Project 3 on time'}, {'item_number': '6', 'title': 'Why theory classes are so hard'}]}
 
-**Catalog Server Log:**    
-query_by_topic,distributed systems  
-query_by_topic,graduate school  
+**Cache Server Log:**  
+search,distributed systems  
+put_search_cache,distributed systems  
+search,graduate school  
+put_search_cache,graduate school  
+search,distributed systems  
+search,graduate school  
 
-**Result:** Pass, client correctly find all books related to the topic "distributed system" and "graduate school". The catalog server correctly stored the two search operations.    
+**Catalog Server 0 Log:**    
+query_by_topic,graduate school
 
-### Test2 output: Perform lookup methods correctly
+**Catalog Server 1 Log:**   
+query_by_topic,distributed systems
+
+**Result:** Pass, client correctly find all books related to the topic "distributed system" and "graduate school". The catalog servers correctly stored the two search operations. The cache server is correctly requested and updated. Loadbalancer correctly request each catalog server according to round robin algorithm.       
+
+### Test2 (Verify Lookup transaction + Cache) Perform lookup methods for each book twice, verify we get the correct result
 **Client Log:**  
 Client0: Send request http://127.0.0.1:8000/lookup?item_number=1  
-Client0: Get response {'result': {'cost': '10', 'item_number': '1', 'stock': 1000, 'title': 'How to get a good grade in 677 in 20 minutes a day', 'type': 'distributed systems'}}  
+Client0: Get response {'result': {'cost': '10', 'item_number': '1', 'stock': 3, 'title': 'How to get a good grade in 677 in 20 minutes a day', 'type': 'distributed systems'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=1  
+Client0: Get response {'result': {'cost': '10', 'item_number': '1', 'stock': 3, 'title': 'How to get a good grade in 677 in 20 minutes a day', 'type': 'distributed systems'}}  
 Client0: Send request http://127.0.0.1:8000/lookup?item_number=2  
-Client0: Get response {'result': {'cost': '20', 'item_number': '2', 'stock': 1000, 'title': 'RPCs for Dummies', 'type': 'distributed systems'}}  
+Client0: Get response {'result': {'cost': '20', 'item_number': '2', 'stock': 3, 'title': 'RPCs for Dummies', 'type': 'distributed systems'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=2  
+Client0: Get response {'result': {'cost': '20', 'item_number': '2', 'stock': 3, 'title': 'RPCs for Dummies', 'type': 'distributed systems'}}  
 Client0: Send request http://127.0.0.1:8000/lookup?item_number=3  
-Client0: Get response {'result': {'cost': '5', 'item_number': '3', 'stock': 1000, 'title': 'Xen and the Art of Surviving Graduate School', 'type': 'graduate school'}}  
+Client0: Get response {'result': {'cost': '5', 'item_number': '3', 'stock': 3, 'title': 'Xen and the Art of Surviving Graduate School', 'type': 'graduate school'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=3  
+Client0: Get response {'result': {'cost': '5', 'item_number': '3', 'stock': 3, 'title': 'Xen and the Art of Surviving Graduate School', 'type': 'graduate school'}}  
 Client0: Send request http://127.0.0.1:8000/lookup?item_number=4  
-Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 1000, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}  
+Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 6, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=4    
+Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 6, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=5  
+Client0: Get response {'result': {'cost': '15', 'item_number': '5', 'stock': 3, 'title': 'How to finish Project 3 on time', 'type': 'graduate school'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=5  
+Client0: Get response {'result': {'cost': '15', 'item_number': '5', 'stock': 3, 'title': 'How to finish Project 3 on time', 'type': 'graduate school'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=6  
+Client0: Get response {'result': {'cost': '15', 'item_number': '6', 'stock': 3, 'title': 'Why theory classes are so hard', 'type': 'graduate school'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=6  
+Client0: Get response {'result': {'cost': '15', 'item_number': '6', 'stock': 3, 'title': 'Why theory classes are so hard', 'type': 'graduate school'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=7  
+Client0: Get response {'result': {'cost': '15', 'item_number': '7', 'stock': 3, 'title': 'Spring in the Pioneer Valley', 'type': 'travel'}}  
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=7  
+Client0: Get response {'result': {'cost': '15', 'item_number': '7', 'stock': 3, 'title': 'Spring in the Pioneer Valley', 'type': 'travel'}}  
 
-**Catalog Server Log:** 
-query_by_item,1  
+**Cache Server Log:**
+lookup,1
+put_lookup_cache,1  
+lookup,1  
+lookup,2  
+put_lookup_cache,2  
+lookup,2  
+lookup,3  
+put_lookup_cache,3  
+lookup,3  
+lookup,4  
+put_lookup_cache,4  
+lookup,4    
+lookup,5  
+put_lookup_cache,5  
+lookup,5    
+lookup,6      
+put_lookup_cache,6  
+lookup,6  
+lookup,7  
+put_lookup_cache,7  
+lookup,7  
+
+**Catalog Server 0 Log:** 
 query_by_item,2  
-query_by_item,3  
 query_by_item,4  
+query_by_item,6  
 
-**Result:** Pass, client correctly get detailed information of book item_number 1 ~ 4. The catalog server correctly stored the 4 lookup operations.  
+**Catalog Server 1 Log:**
+query_by_item,1
+query_by_item,3
+query_by_item,5
+query_by_item,7
+
+**Result:** Pass, client correctly get detailed information of book item_number 1 ~ 7. The two catalog servers correctly stored the 7 lookup operations. The cache is correctly updated and requested. Loadbalancer correctly request each catalog server according to round robin algorithm.  
 
 ### Test3 output: Run Buy operations and update the stock of the item correctly
 **Client Log:**  
@@ -285,23 +349,30 @@ Client0: Get response {'result': 'Success'}
 Client0: Send request http://127.0.0.1:8000/buy?item_number=1  
 Client0: Get response {'result': 'Success'}  
 Client0: Send request http://127.0.0.1:8000/buy?item_number=1  
-Client0: Get response {'result': 'Failed'} 
+Client0: Get response {'result': 'Failed'}  
 
-**Catalog Server Log:**  
-query_by_item,1  
+
+**Catalog Server 0 Log:**  
 update,1,na,-1  
 query_by_item,1  
 update,1,na,-1  
+update,1,na,-1  
+
+
+**Catalog Server 1 Log:**
+update,1,na,-1  
+update,1,na,-1   
 query_by_item,1  
 update,1,na,-1  
 
-**Order Server Log:**  
-bought book 1  
-bought book 1  
-bought book 1  
- 
+**Order Server 0 Log:**  
+bought book 1
 
-**Result:** Pass, book item_number 1 only has 3 stock. The first of 3 client's buy requests should succeed and the last one should fail. The order server correctly stored only the three succeded buy operation. The catalog server correctly logs the 3 executed queries and 3 update requests.
+**Order Server 1 Log:**  
+bought book 1  
+bought book 1  
+
+**Result:** Pass, book item_number 1 only has 3 stock. The first of 3 client's buy requests should succeed and the last one should fail. The order server correctly stored only the three succeded buy operation. The catalog server correctly logs the 3 executed queries and 3 update requests. Each replica exactly decrease the stock 3 times, which is the same in all replica.  
 
 
 ### Test4 output: (Race Condition) 4 clients buy the book "RPCs for Dummies" that only has 3 stock concurrently, only 3 clients can buy the book 
