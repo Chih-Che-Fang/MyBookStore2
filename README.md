@@ -6,16 +6,11 @@
 **Enviornment:**  Windows + Docker  + AWS Cli2.0 installed + AWS cli configured with your own AWS account **(Please make sure you're able to access your AWS account by AWS CLI)**  
 **Test Cases:**   
 **[Intermediate Milestone]**  
-- test1: (Cache) Perform search requests for each topic twice, verify we get the same correct result  
-- test2: (Cache) Perform lookup methods with cache correctly, verify we get the same correct result  
-- test3: (Replication/Cache Consistency + Loadbalance) Process Buy request and update the book stock correctly with Frontend server direct requests to servers evenly. Also check the cache consistency after several buy transaction  
-- test4: (Replication/Cache Consistency + Race Condition) 4 concurrent clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book  
- 
-**[Final Milestone]**  
 - **test1:** (Verify Search transaction + Cache) Perform search requests for each topic twice, verify we get the same and correct result  
 - **test2:** (Verify Lookup transaction + Cache) Perform lookup methods for each book twice, verify we get the same and correct result  
 - **test3:** (Verify Buy transaction + Replication/Cache Consistency + Loadbalance) Process Buy request and update the book stock correctly with Frontend server direct requests to servers evenly. Also check the cache consistency after several buy transaction  
 - **test4:** (Verify Replication/Cache Consistency + Race Condition Protection) 4 concurrent clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
+**[Final Milestone]**  
 - **test5:** (Verify Fault tolerance) After primary catalog server crashed, Frontend server can still correctly process update and query requests. Check alive replica will take over the primary job correctly.  
 - **test6:** (Verify Fault tolerance) Primary catalog server can correctly recover from a fail and resync with replicas  
 - **test7:** (Verify Fault tolerance) Same with test5, but the crashed server is a replicated catalog server  
