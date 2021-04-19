@@ -21,5 +21,29 @@ start cmd /k python -m src.server.order_server 0
 start cmd /k python -m src.server.order_server 1
 start cmd /k python -m src.server.cache_server
 
+REM REM test fault tolerance
+REM REM Test primary server crashed and then recovered
+REM curl localhost:8001/shutdown
+REM curl localhost:8000/buy?item_number=2
+REM curl localhost:8000/buy?item_number=2
+REM curl localhost:8000/buy?item_number=2
+REM start cmd /k python -m src.server.catalog_server 0
+REM timeout 4
+REM curl localhost:8002/query_by_item?item_number=2
+REM curl localhost:8001/query_by_item?item_number=2
+REM 
+REM REM Test replicated server crashed and then recovered
+REM curl localhost:8002/shutdown
+REM curl localhost:8000/buy?item_number=2
+REM curl localhost:8000/buy?item_number=2
+REM curl localhost:8000/buy?item_number=2
+REM start cmd /k python -m src.server.catalog_server 1
+REM timeout 4
+REM curl localhost:8002/query_by_item?item_number=2
+REM curl localhost:8001/query_by_item?item_number=2
+
+
+
 timeout 3
 start cmd /k python -m src.client.client
+pause

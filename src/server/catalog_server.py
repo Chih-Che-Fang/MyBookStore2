@@ -1,5 +1,5 @@
 import io
-import json
+import json, os, signal
 from flask import Flask, redirect, jsonify, request
 import threading
 from os import path
@@ -8,7 +8,13 @@ from src.utils.book import Book
 from src.utils.config import Config
 from src.communication.replica_protocol import ReplicaProtocol
 from src.communication.heart_beater import HeartBeater
+from src.communication.heart_beat_listener import HeartBeatListener
 import sys
+import logging
+
+#Disable unnecessary log
+log = logging.getLogger('werkzeug')
+log.disabled = True
 
 #Create the book store catalog end server instance
 app = Flask(__name__)
@@ -29,6 +35,9 @@ config = Config('config')
 
 #Get replication protocol (Primary Back-up Replcaition)
 rp = ReplicaProtocol(id, 'catalog', config)
+
+#Crate a hear beat listener to monitor health of replicas
+hb_listener = HeartBeatListener(config, id)
 
 #Create heartbeater to send heart beat message to frontend server
 hb = HeartBeater('catalog', -1, config)
@@ -79,6 +88,8 @@ def update():
 	print('Catalog Server: Receive update request where item_number={}, cost={}, stock={}'.format(book.item_number, cost, stock))
 	
 	if rp.is_primary():
+		#invalidate cache
+		rp.invalidate_cache("http://{}/invalidate_cache?item_number={}".format(config.getAddress('cache'), book.item_number))
 		#If server is the primary, Perform update operation
 		res = perform_update(book, cost, stock)
 		if res['result'] == 'Failed':
@@ -87,12 +98,7 @@ def update():
 		rp.notify_replicas_update(id, "http://{}/internal_update?item_number={}&stock={}&cost={}".format('{}', book.item_number, stock, 'na'))
 	else:
 		#Server is not a Primary, notify primary server to update
-		can_notify = rp.notify_primary_update("http://{}/internal_update?item_number={}&stock={}&cost={}".format('{}', book.item_number, stock, 'na'))
-		if not can_notify:
-			#If primary server crashed, Perform update operation
-			res = perform_update(book, cost, stock)
-			if res['result'] == 'Failed':
-				return jsonify(res)
+		res = rp.notify_primary_update("http://{}/internal_update?item_number={}&stock={}&cost={}".format('{}', book.item_number, stock, 'na'))
 	return jsonify(res)
 
 #Process update request sent by replicas
@@ -108,6 +114,9 @@ def internal_update():
 	print('Catalog Server: Receive internal update request where item_number={}, cost={}, stock={}'.format(book.item_number, cost, stock))
 	
 	#Perform update operation
+	if rp.is_primary():
+		#invalidate cache
+		rp.invalidate_cache("http://{}/invalidate_cache?item_number={}".format(rp.cache_addr, book.item_number))
 	res = perform_update(book, cost, stock)
 	if res['result'] == 'Failed':
 		return jsonify(res)
@@ -125,7 +134,7 @@ def internal_update():
 def resync():
 	#Get input parameter from HTTP request
 	server_id = int(request.args.get('server_id'))
-	rp.update_replica_health(server_id, True)
+	config.update_server_health('catalog', server_id, True)
 	return jsonify(Book.get_book_list(books))
 
 
@@ -144,6 +153,7 @@ def perform_update(book, cost, stock):
 	if stock != 'na':
 		if book.update_stock(stock) == False:
 			res['result'] = 'Failed'
+			print('out of stock, buy operation failed!')
 	lock.release()
 	
 	#if operation executed, log trasnaction
@@ -153,21 +163,56 @@ def perform_update(book, cost, stock):
 	return res
 
 
+#Process heart beat message
+#input: server id
+#output: ACK of heart beat
+@app.route('/heart_beat', methods=['GET'])
+def heart_beat():
+	server_type = request.args.get('server_type')
+	server_id = request.args.get('server_id')
+
+	#process hear beat
+	hb_listener.heart_beat(server_type, int(server_id))
+	#print('Frontend Server: Receive heart beat message from {} server where id = {}'.format(server_type, server_id))
+	return jsonify({'result': 'Success'})
+
+
+#Shut down the server forcely
+#input: None
+#output: Shout down result
+@app.route('/shutdown', methods=['GET'])
+def shutdown():
+	hb.stop()
+	return jsonify({'result': 'Succeed'})
+
+
+#Recover the server forcely
+#input: None
+#output: recover result
+@app.route('/recover', methods=['GET'])
+def recover():
+	global id
+	global books
+	global hb
+
+	hb = HeartBeater('catalog', id, config)
+	hb.start()
+	books = rp.recover() #recover from a failed state
+	
+	print('catalog {} recovered from crash'.format(id))
+	return jsonify({'result': 'Succeed'})
+
+
 #Set initialize book store satus
 #input: catalog log file name
 #output: None
 def init_state(file_name):
-	#Cata log server has crashed before
-	if path.exists(logger.log_file):
-		return false
-	
 	file = open(file_name, 'r')
 	for line in file.readlines():
 		tokens = line.strip().split(',')
 		#if find init catalog log, add the book info to the book store 
 		books[tokens[1]] = Book(tokens[1], int(tokens[2]), tokens[3], tokens[4], tokens[5])
 		logger.log(line)
-	return True
         
     
 #start the bookstore catalog server
@@ -178,11 +223,11 @@ if __name__ == '__main__':
 	rp.id = id
 	logger.log_file = './output/catalog{}_log'.format(id)
 	
-	#initialize/recover book store satus
-	if init_state('./init_bookstore') == False:
-		books = rp.recover() #recover from a failed state
+	#initialize book store satus
+	init_state('./init_bookstore')
 	
 	#start heart beater
+	hb_listener.id = id
 	hb.server_id = id
 	hb.start()
 	

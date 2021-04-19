@@ -64,16 +64,13 @@ def put_lookup_cache():
 	return jsonify({'result':'success'})
 	
 
-#Process update request from catalog server
+#Process cache invalidation request from catalog server
 #input: book item number
-#output: update result
-@app.route('/internal_update', methods=['GET'])
-def internal_update():
+#output: invalidation result
+@app.route('/invalidate_cache', methods=['GET'])
+def invalidate_cache():
 	item_number = request.args.get('item_number')
-	stock = int(request.args.get('stock'))
-	lookup_cache[item_number].update_stock(stock)
-	print('Cache Server: Update cache of lookup({}) with stock update={}'.format(item_number, stock))
-	logger.log('internal_update,{},{}'.format(item_number, stock))
+	lookup_cache.pop(item_number, None)
 	return jsonify({'result':'success'})
     
 #start the bookstore frontend server

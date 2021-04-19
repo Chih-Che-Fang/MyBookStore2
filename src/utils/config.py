@@ -25,5 +25,14 @@ class Config():
 	#Get address of requested server
 	#input: server's name
 	#output: server's address
-	def getAddress(self, server_name):
-		return self.server_addr[server_name][0]
+	def getAddress(self, server_name, server_idx=0):
+		return self.server_addr[server_name][server_idx]
+		
+	#update server's health status
+	#input: 
+	#@server_type = type of server
+	#@server_id = id of server
+	#@is_alive = health status
+	#output: None
+	def update_server_health(self, server_type, server_id, is_alive):
+		self.server_health[server_type][server_id] = is_alive

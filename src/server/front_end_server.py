@@ -2,11 +2,17 @@ from flask import Flask, redirect, jsonify, request
 import sys
 import time
 import requests
+
 from src.utils.performance_monitor import Monitor
 from src.utils.config import Config
 from src.communication.loadbalancer import LoadBlancer
 from src.communication.heart_beat_listener import HeartBeatListener
 import json
+import logging
+
+#Disable unnecessary log
+log = logging.getLogger('werkzeug')
+log.disabled = True
 
 #Create the book store front end server instance
 app = Flask(__name__)
@@ -18,7 +24,7 @@ config = Config('config')
 lb = LoadBlancer(config)
 
 #Crate a hear beat listener to monitor health of replicas
-hb_listener = HeartBeatListener(lb)
+hb_listener = HeartBeatListener(config)
 
 #Performance monitors to trace average response time
 q_by_topic_monitor = Monitor('Frontend Server', 'query by item topic')
@@ -34,24 +40,27 @@ def search():
 	topic = request.args.get('topic')
 	
 	#Query the cache server for search operation
-	cache = lb.request('http://{}/search?topic={}'.format(lb.getAddress('cache'), topic))
+	cache = lb.request('http://{}/search?topic={}'.format({}, topic), 'cache')
+	#cache = {}
 	
+	start_time = time.time()
 	if len(cache) == 0:
 		#cache doesn't exist, redirect search request to catalog server
 		print('Frontend Server: Redirect search request to catalog server')
-		start_time = time.time()
 		
-		res = lb.request( 'http://{}/query_by_topic?topic={}'.format(lb.getAddress('catalog'), topic))
-		print(res, file=sys.stderr)
+		res = lb.request( 'http://{}/query_by_topic?topic={}'.format({}, topic), 'catalog')
+
 		#put search result into cache
-		lb.request('http://{}/put_search_cache?topic={}&res={}'.format(lb.getAddress('cache'), topic, json.dumps(res)))
+		lb.request('http://{}/put_search_cache?topic={}&res={}'.format({}, topic, json.dumps(res)), 'cache')
 
 		q_by_topic_monitor.add_sample(time.time() - start_time)
-		return res
+		return jsonify(res)
 	else:
 		#Cache hit! Return cache directly
 		print('Frontend Server: Get result from cache')
-		return cache
+		q_by_topic_monitor.add_sample(time.time() - start_time)
+
+		return jsonify(cache)
 	
 
 #Process search client request 
@@ -63,25 +72,27 @@ def lookup():
 	item_number = request.args.get('item_number')
 	
 	#Query the cache server for lookup operation
-	cache = lb.request('http://{}/lookup?item_number={}'.format(lb.getAddress('cache'), item_number))
-
+	cache = lb.request('http://{}/lookup?item_number={}'.format({}, item_number), 'cache')
+	#cache = {}
+	
+	start_time = time.time()
 	if len(cache) == 0:
 		#cache doesn't exist, redirect search request to catalog server
 		print('Frontend Server: Redirect lookup request to catalog server')
-		start_time = time.time()
 		
-		res = lb.request('http://{}/query_by_item?item_number={}'.format(lb.getAddress('catalog'), item_number))
+		res = lb.request('http://{}/query_by_item?item_number={}'.format({}, item_number), 'catalog')
 		
-		print(res)
+
 		#put search result into cache
-		lb.request('http://{}/put_lookup_cache?res={}'.format(lb.getAddress('cache'), json.dumps(res)))
+		lb.request('http://{}/put_lookup_cache?res={}'.format({}, json.dumps(res)), 'cache')
 		
 		q_by_item_monitor.add_sample(time.time() - start_time)
-		return res
+		return jsonify(res)
 	else:
 		#Cache hit! Return cache directly
 		print('Frontend Server: Get result from cache')
-		return cache
+		q_by_item_monitor.add_sample(time.time() - start_time)
+		return jsonify(cache)
 
 #Process search client request 
 #input: book item number
@@ -93,10 +104,10 @@ def buy():
 
 	#redirect search request to order server
 	start_time = time.time()
-	res = lb.request('http://{}/buy?item_number={}'.format(lb.getAddress('order'), item_number))
+	res = lb.request('http://{}/buy?item_number={}'.format({}, item_number), 'order')
 	buy_monitor.add_sample(time.time() - start_time)
 	
-	return res
+	return jsonify(res)
 
 
 #Process heart beat message
@@ -106,13 +117,13 @@ def buy():
 def heart_beat():
 	server_type = request.args.get('server_type')
 	server_id = request.args.get('server_id')
+
+	#process hear beat
 	hb_listener.heart_beat(server_type, int(server_id))
 	#print('Frontend Server: Receive heart beat message from {} server where id = {}'.format(server_type, server_id))
 	return jsonify({'result': 'Success'})
 
 #start the bookstore frontend server
 if __name__ == '__main__':
-	#start hear beat listener to detect faulty replicas
-	hb_listener.start()
 	#start server
 	app.run(host='0.0.0.0', port=8000, threaded=True)

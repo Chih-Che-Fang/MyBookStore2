@@ -17,29 +17,27 @@ class LoadBlancer():
 	#Perform HTTP request to alive servers
 	#input: HTTP request
 	#output: HTTP request result
-	def request(self, req):
-		print(req, file=sys.stderr)
+	def request(self, req, server_type, id= -1):
+		#print(req, file=sys.stderr)
 		res = None
 		max_retry = 2
 		while res == None and max_retry > 0:
 			max_retry -= 1
 			try:
-				res = requests.get(req).json()
-			except:
-				#nofitfy current chosen server is crashed
-				self.notify_server_crashed('catalog')
+				url = req.format(self.getAddress(server_type, id))
+				print(url, file=sys.stderr)
+				res = requests.get(url).json()
+			except Exception:
+				print(Exception)
+				
+			#nofitfy current chosen server is crashed
+			print(res)
+			if res == None or (len(res) > 0 and res['result'] == 'Failed'):
+				self.notify_server_crashed(server_type)
+				res = None
 				print('server crashed')
-				break;
-		return jsonify({'result': 'Failed'}) if res == None else res
-	
-	#update server's health status
-	#input: 
-	#@server_type = type of server
-	#@server_id = id of server
-	#@is_alive = health status
-	#output: None
-	def update_server_health(self, server_type, server_id, is_alive):
-		self.server_health[server_type][server_id] = is_alive
+
+		return {'result': 'Failed'} if res == None else res
 	
 	
 	#nofitfy current chosen server is crashed
@@ -48,13 +46,15 @@ class LoadBlancer():
 	#output: None
 	def notify_server_crashed(self, server_type):
 		server_idx = self.server_rr[server_type]
-		self.server_health[server_type][server_idx] = False
+		self.server_health['catalog'][server_idx] = False
+		self.server_health['order'][server_idx] = False
 
 	#get next alive server id
 	#input: type of server want to access
 	#output: server idex
 	def get_next_server(self, server_type):
-		
+		print(self.server_health['order'])
+		print(self.server_health['catalog'])
 		num_rep = len(self.server_addr[server_type])
 		server_idx = (self.server_rr[server_type] + 1) % num_rep
 
