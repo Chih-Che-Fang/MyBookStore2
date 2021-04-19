@@ -221,21 +221,26 @@ We terminate all EC2 instances, delete the security group, and key pairs & tempo
 
 # Validation & Test
 ## Test Cases
-- **test1 (Intermediate Milestone):** Perform search methods correctly.  
-- **test2 (Intermediate Milestone):** Perform lookup methods correctly.  
-- **test3 (Intermediate Milestone):** Run Buy operations and update the stock of the item correctly  
-- **test4 (Intermediate Milestone):** (Race Condition) 4 clients buy the book "RPCs for Dummies" that only has 3 stock concurrently, only 3 clients can buy the book  
-- **Test5 (Final Milestone):** Run test1~test4 again, but deploy servers on different AWS EC2 instances.  
+- **test1:** (Verify Search transaction + Cache) Perform search requests for each topic twice, verify we get the same and correct result  
+- **test2:** (Verify Lookup transaction + Cache) Perform lookup methods for each book twice, verify we get the same and correct result  
+- **test3:** (Verify Buy transaction + Replication/Cache Consistency + Loadbalance) Process Buy request and update the book stock correctly with Frontend server direct requests to servers evenly. Also check the cache consistency after several buy transaction  
+- **test4:** (Verify Replication/Cache Consistency + Race Condition Protection) 4 concurrent clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book 
+- **test5:** (Verify Fault tolerance) After primary catalog server crashed, Frontend server can still correctly process update and query requests. Check alive replica will take over the primary job correctly.  
+- **test6:** (Verify Fault tolerance) Primary catalog server can correctly recover from a fail and resync with replicas  
+- **test7:** (Verify Fault tolerance) Same with test5, but the crashed server is a replicated catalog server  
+- **test8:** (Verify Fault tolerance) Same with test 6, but the recovered server is a replicated catalog server   
+- **test9:** (Verify Distributed System) Run all of above test cases, but deploy servers on 5 remote EC2 machines, with each of the components and replicas on different machines
 
 ## Automatic Test Scripts
-- **run_local_test.bat:** This script will automatically start the frontend, catalog, and order server on the local machine in a container. Then run a client in a container and perform test 1 ~ test 4 in order on a local machine. Finally, store output under the output folder for validation.  
+- **run_local_test.bat:** This script will automatically start the frontend, cache, catalog, and order server on the local machine in a container. Then, run a client in a container and perform all test cases in order on a local machine. Finally, store output under the output folder for validation.  
 
-- **run_distributed_test.bat:**  This script will automatically create 3 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying the corresponding server, on remote servers. Next, deploy a client on a local machine and perform test 1 ~ test 4 in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
+- **run_distributed_test.bat:**  This script will automatically create 5 Amazon EC2 instances, migrating code and config file to remote servers, building docker image, deploying the corresponding server, on remote servers. Next, deploy a client on a local machine and perform all test cases in order on remote EC2 instances. Finally, store output under the output folder for validation and release all cloud resources. For more detail please see the chapter, "How it Works/Automatic Distributed Server Deployment".  
 
 ## Test Output (Log)  
 We store all testing output under the output folder and use them to validate the correctness of each test case. There are three types of logs:  
-- catalog_log: store all executed transaction on the catalog server  
-- order_log: store all executed transaction on the order server  
+- catalog{id}_log: store all executed transaction on the catalog server with id = {id}  
+- order{id}_log: store all executed transaction on the order server with id = {id}  
+- cache_log: store all executed transaction on the cache server  
 - client_log: store all executed HTTP request and response log for all concurrent clients  
 
 ## Verification of All Test Cases  
