@@ -12,13 +12,29 @@ Authors: Chih-Che Fang
 ![UML diagram](./UML_FRONTEND.png "UML")
 
 ## Class Discription  
-- **frontend_server:** frontend server that process and dispatch client's request  
-- **catalog_server:** catalog server that host book information and can serve update, query_by_item, query_by_topic request from frontend and order server  
-- **order_server:** order server that process frontend server's buy request  
-- **SystemMonitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
-- **Client:** A class used to perform multiple HTTP requests to the frontend server  
+### Server Package
+- **FrontendServer:** frontend server that process and dispatch client's request  
+- **CatalogServer:** catalog server that host book information and can serve update, query_by_item, query_by_topic request from frontend and order server   
+- **OrderServer:** order server that process frontend server's buy request  
+- **CacheServer:** Cache server that store must recent & consistent search/query results  
+
+### Communication Package
+- **LoadBalancer:** A class used to direct HTTP request to replicated server evenly  
+- **HeartBeater:** A class used to send hear beat to targeted server itermittenly  
+- **HeartBeaterListener:** A listener used to process and monitor hear beat messages from other servers  
+- **ReplicationProtocol:** A class used to implement replication consistency and fault tolerance  
+- **Request:** A class used to perfrom secured & multi-threaded HTTP request  
+
+### Client Package
+- **Client:** A class used to perform test cases by sending multiple HTTP requests to the frontend server  
+
+### Utils Package
+- **Monitor:** A class used to store and calculate the latency/average response time of HTTP requests.  
 - **Book:** A class used to store all book's detailed information like cost, title, topic, ...etc  
+- **Config:** Store the address and health status of all servers  
 - **Logger:** A class used to output log to files  
+
+
 
 ## Operation Description:  
 - The **front end server** supports three operations:  
