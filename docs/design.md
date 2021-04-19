@@ -5,7 +5,11 @@ Authors: Chih-Che Fang
 # System Design
 
 ## UML Class Diagram
+### Backend Components
 ![UML diagram](./UML_BACKEND.png "UML")
+
+### Frontend + Client Componets
+![UML diagram](./UML_FRONTEND.png "UML")
 
 ## Class Discription  
 - **frontend_server:** frontend server that process and dispatch client's request  
