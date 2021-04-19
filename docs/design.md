@@ -102,7 +102,7 @@ I adopt primary-backup as replication protocols. Both two replicated catalog/ord
  1.Perform update if it is valid (Ex. stock > 0)  
  2.Notify replicas to update  
  3.Notify cache server to invalidate cache  
- 4.Write execuated transaction to log
+ 4.Write execuated transaction to log  
  5.Respond update result to caller  
 
 - If replicated server:  
@@ -115,7 +115,14 @@ I adopt primary-backup as replication protocols. Both two replicated catalog/ord
 ### Primary Selection
 Since each replica has global knowledge about the address/port and health status of replica. We can always use the healthy replica with smallest id as the primary server. All replicas use this rule to know whether itself is a primary or a normal replica  
 
-### Fault Tolerance
+## Fault Tolerance
+### Fault Detection - Heart-Beat Mechanism
+![Heartbeat diagram](./Heartbeat.PNG "Heartbeat")
+
+### Primary Takeover
+Each replias know the id and health of other replicas. After detection, it can easily determin the new primary server by choosing the alive replica with smallest id. It can also know whether itself is a primary or not.
+
+### Resynchronization
 
 
 ## Transaction Request Format
@@ -165,8 +172,8 @@ client 2 queried the stock of book item_number 1 is 0
 client 2 buy failed  
 releaseLock()  
 
-## Server Output Log
-We store the executed operation with a file name of catalog_log, order_log in catalog server & order server respectively:  
+## Logging Mechanism
+We store the executed transaction with a file name of client_log, cache_log, catalog_log, order_log in each server/client respectively:  
 Format = **[Operation args]**  
 
 **Operation:** Execuated operation name  
