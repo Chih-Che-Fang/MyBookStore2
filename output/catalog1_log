@@ -14,25 +14,16 @@ init,7,3,15,travel,Spring in the Pioneer Valley
 
 catalog server started,1
 query_by_topic,distributed systems
-query_by_topic,graduate school
-query_by_topic,distributed systems
-query_by_topic,graduate school
 query_by_item,1
-query_by_item,1
-update,1,na,-1
-query_by_item,1
-query_by_item,2
-query_by_item,1
-update,1,na,-1
-query_by_item,2
 query_by_item,3
+query_by_item,5
+query_by_item,7
 query_by_item,1
 update,1,na,-1
-query_by_item,3
-query_by_item,4
+update,1,na,-1
 query_by_item,1
+update,1,na,-1
 query_by_item,1
-query_by_item,2
 query_by_item,2
 query_by_item,2
 query_by_item,2

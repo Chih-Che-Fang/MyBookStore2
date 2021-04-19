@@ -14,6 +14,7 @@ REM kill all docker process
 FOR /f "tokens=*" %%i IN ('docker ps -aq') DO docker stop %%i
 FOR /f "tokens=*" %%i IN ('docker ps -aq') DO docker rm %%i
 
+REM start all type of servers
 start cmd /k python -m src.server.front_end_server
 start cmd /k python -m src.server.catalog_server 0
 start cmd /k python -m src.server.catalog_server 1

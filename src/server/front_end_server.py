@@ -40,7 +40,7 @@ def search():
 	topic = request.args.get('topic')
 	
 	#Query the cache server for search operation
-	cache = lb.request('http://{}/search?topic={}'.format({}, topic), 'cache')
+	cache = lb.request('http://{}/search?topic={topic}'.format({}, topic=topic), 'cache')
 	#cache = {}
 	
 	start_time = time.time()
@@ -51,7 +51,7 @@ def search():
 		res = lb.request( 'http://{}/query_by_topic?topic={}'.format({}, topic), 'catalog')
 
 		#put search result into cache
-		lb.request('http://{}/put_search_cache?topic={}&res={}'.format({}, topic, json.dumps(res)), 'cache')
+		lb.request('http://{}/put_search_cache?topic={}&res={}'.format(lb.getAddress('cache'), topic, json.dumps(res)), 'cache', 0, False)
 
 		q_by_topic_monitor.add_sample(time.time() - start_time)
 		return jsonify(res)
@@ -84,7 +84,7 @@ def lookup():
 		
 
 		#put search result into cache
-		lb.request('http://{}/put_lookup_cache?res={}'.format({}, json.dumps(res)), 'cache')
+		lb.request('http://{}/put_lookup_cache?res={}'.format(lb.getAddress('cache'), json.dumps(res)), 'cache', 0, False)
 		
 		q_by_item_monitor.add_sample(time.time() - start_time)
 		return jsonify(res)

@@ -67,14 +67,15 @@ if __name__ == '__main__':
 	logger.log('Client0: Get response {}'.format(send_req(0, "http://{}/search?topic={}".format(frontend_addr, quote('distributed systems')))))
 	logger.log('Client0: Get response {}'.format(send_req(0, "http://{}/search?topic={}".format(frontend_addr, quote('graduate school')))))
 	
-	for i in range(4):
-		#Run test2: Perform lookup and search methods correctly.
+	#Run test2: Perform lookup transaction correctly.
+	for i in range(7):
 		logger.log('Client0: Get response {}'.format(send_req(0, "http://{}/lookup?item_number={}".format(frontend_addr, i + 1))))
-		#Run test3: Perform Buy operations run and update the stock of the item correctly
-		logger.log('Client0: Get response {}'.format(send_req(0, "http://{}/buy?item_number={}".format(frontend_addr, '1'))))
-		#Run test2: Perform lookup and search methods correctly.
 		logger.log('Client0: Get response {}'.format(send_req(0, "http://{}/lookup?item_number={}".format(frontend_addr, i + 1))))
 	
+	#Run test3: Perform buy transaction correctly.
+	for i in range(4):
+		logger.log('Client0: Get response {}'.format(send_req(0, "http://{}/buy?item_number={}".format(frontend_addr, '1'))))
+
 	#Run test4:  (Race Condition) 4 clients buy book "RPCs for Dummies" that only has 3 stock concurrently, only 3 client can buy the book
 	clients = []
 	num_clients = 4

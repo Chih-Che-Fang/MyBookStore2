@@ -1,6 +1,7 @@
 import requests
 from flask import jsonify
 import sys
+import traceback
 
 #LoadBlancer is used to redirect request to alive replicas evenly 
 class LoadBlancer():
@@ -17,25 +18,24 @@ class LoadBlancer():
 	#Perform HTTP request to alive servers
 	#input: HTTP request
 	#output: HTTP request result
-	def request(self, req, server_type, id= -1):
+	def request(self, req, server_type, id= -1, lazy = True):
 		#print(req, file=sys.stderr)
 		res = None
 		max_retry = 2
 		while res == None and max_retry > 0:
 			max_retry -= 1
 			try:
-				url = req.format(self.getAddress(server_type, id))
+				url = req.format(self.getAddress(server_type, id)) if lazy else req
 				print(url, file=sys.stderr)
 				res = requests.get(url).json()
-			except Exception:
-				print(Exception)
+			except Exception as error:
+				traceback.print_stack()
 				
 			#nofitfy current chosen server is crashed
 			print(res)
 			if res == None or (len(res) > 0 and res['result'] == 'Failed'):
 				self.notify_server_crashed(server_type)
 				res = None
-				print('server crashed')
 
 		return {'result': 'Failed'} if res == None else res
 	

@@ -23,6 +23,7 @@ logger = Logger('./output/cache_log')
 def search():
 	print('Cache Server: Pass back search cache content to catalog server')
 	topic = request.args.get('topic')
+	logger.log('search,{}'.format(topic))
 	return jsonify({'result': search_cache[topic]} if topic in search_cache else {})
 	
 
@@ -33,6 +34,7 @@ def search():
 def lookup():
 	print('Cache Server: Pass back lookup cache content to catalog server')
 	item_number = request.args.get('item_number')
+	logger.log('lookup,{}'.format(item_number))
 	return jsonify({'result': lookup_cache[item_number].get_info()} if item_number in lookup_cache else {})
 
 #Put search result into cache
@@ -71,6 +73,7 @@ def put_lookup_cache():
 def invalidate_cache():
 	item_number = request.args.get('item_number')
 	lookup_cache.pop(item_number, None)
+	logger.log('invalidate_cache,{}'.format(item_number))
 	return jsonify({'result':'success'})
     
 #start the bookstore frontend server
