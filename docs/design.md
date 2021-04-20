@@ -220,7 +220,8 @@ We migrate the latest code to the remote server using SCP and invoke script ec2_
 We automatically build a docker image for the client and run the client in a container. Then the client can launch multiple threads and perform multiple HTTP requests to the frontend server. That is, the client will run all test cases in order and send requests to the frontend server.
 
 ### 7.Gather test output(log) for validation
-We use SCP to pull test logs under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog_log and order_log, which represent the catalog server's log and order server's log respectively.
+We use SCP to pull test logs under the output folder from all remote servers. We store the output from each server to the local machine's output folder. The output is named with catalog{id}_log and order{id}_log, cache_log, which represent the catalog server's log, order server's log, cache server's log respectively.  
+We also stroe the client log named as client_log to know what requests have performed and what response got from servers.  
 
 ### 8.Release AWS resource
 We terminate all EC2 instances, delete the security group, and key pairs & temporary files created previously at the end of the test
