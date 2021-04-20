@@ -57,4 +57,5 @@ Fianlly, the distributed servers will output all server logs to "output" folder
 -	dockerfile: docker file for all servers (frontend/catalog/order)
 -	requirements.txt: Docker image dependencies
 -	ec2_setup.sh: sub-scripts for distributed testing, used to set up remote machines (Ex.build docker, run docker, ..)
--	debug.bat: for debug use
+-	debug.bat: for debug use to run all servers
+-	clean.bat: for debug use to release resources
