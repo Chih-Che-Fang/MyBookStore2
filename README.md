@@ -23,7 +23,7 @@
 
 1. Switch to the root directory of this project (Ex. cd /MyBookStore) and confirm the path contains no "blank"  
 
-2. **[Test on Single Local Server]** Perform **run_local_test.bat** on Windows OS (With Docker installed), and will automatically build docker image, run docker image and deploy client and all type of servers in a container. Client then will perform all test cases defined above to frontend server automatically.  
+2. **[Test on Single Local Server]** Perform **run_local_test.bat** on Windows OS (With Docker installed), and will automatically build docker image, run docker image and deploy client and all type of servers in a container. Client then will perform all test cases defined above with frontend server automatically.  
 **[Test on Multiple Remote Servers(EC2)]** Perform **run_distributed_test.bat** on Windows OS (With Docker installed, AWS Cli set and configured, must have access to your own AWS account), and will automatically careat security group, key pair, and 5 EC2 instances, then migrate the code/config to remote server, build docker image, and run one of the 4 type bookstore server (frontend/cache/catalog/order) on remote machines. Finally, the script will deploy the client in local machine's container and  will perform all test cases on remote servers.  
 3. See the testing result on console that runs the client container, it shows you client requets performed and the server's response, you'll see the logs like:  
 Client1: Send request http://127.0.0.1:8000/buy?item_number=2  
@@ -38,7 +38,7 @@ Client4: Get response  {'result': 'Failed'}
 
 Fianlly, the distributed servers will output all server logs to "output" folder  
 
-4.To verify the server operation's correctness and executed HTTP request, check the log file **cache_log**, **"catalog0_log/catalog1_log"** , and **"order0_log/order1_log"** under **"output"** folder. To verify client's HTTP requests & response log, check the log file **client_log**   
+4.To verify the server operation's correctness and executed HTTP request, check the log file **cache_log**, **"catalog0_log/catalog1_log"** , and **"order0_log/order1_log"** under **"output"** folder. To verify client's HTTP requests & response log for each test cases, check the log file **client_log**   
 
 
 # Directory/Files Description
@@ -57,4 +57,5 @@ Fianlly, the distributed servers will output all server logs to "output" folder
 -	dockerfile: docker file for all servers (frontend/catalog/order)
 -	requirements.txt: Docker image dependencies
 -	ec2_setup.sh: sub-scripts for distributed testing, used to set up remote machines (Ex.build docker, run docker, ..)
--	debug.bat: for debug use
+-	debug.bat: for debug use to run all servers
+-	clean.bat: for debug use to release resources

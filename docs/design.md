@@ -135,6 +135,10 @@ After the crashed server recovered from a faliure, it will:
 4.Re-select primary server  
 5.Send hear beat message to frontend server to notify that the server is recovered again  
 
+### Simulation for Server Shutdown and Recover
+I implement two REST API in catalog server for simulating server crash & recover:  
+- **Shutdown:** This API will stop the heart beat of catalog server so that frontend & other replica will detect the server crash after 1 second. Frontend server's loadbalancer will not direct any HTTP request to the crashed server anymore. Similarily, the other replica will detect the crash of the server, if the crashed server was a primary, the replica will reselect a replica to take over the primary server role.  
+- **Recover:** This API will restart the heart beater of the catalog server. In this way, the frontend & other replica will soon detect the recover of the catalog server and the loadbalancer will mark the server as alive and continue directing HTTP requests to the server as before. The other replica will reselect the primary server. The crashed will send a resync reqeuest to other replicas to sync the current book store database.  
 
 ## Transaction Request Format
 **Lookup:**  
@@ -486,110 +490,79 @@ Same logic as test 6
 **Result:** Pass, All test1 ~ test 8 log is the same as run in local machine
 
 # Evaluation and Measurements
-## 1.	Compute the average response time (query/buy) of your new systems.  What is the response time with and without caching? How much does caching help?
+## 1.	Compute the average response time (query/buy) of your new systems.  What is the response time with and without caching? How much does caching help?  
 
+### Search Transaction  
+![Q1_Search diagram](./Q1_Search.PNG "Q1_Search")  
 
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
------------- | ------------- | ------------- | -------------
-79.524ms | 79.636ms | 86.7036ms  | 94.7036ms
+### Lookup Transaction  
+![Q1_Lookup diagram](./Q1_Lookup.PNG "Q1_Lookup")  
+
+### Buy Transaction  
+![Q1_Buy diagram](./Q1_Buy.PNG "Q1_Buy")  
 
 PS: all response time sampled from 1000 requests  
 
-- Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle client requests, the server still needs time to process the request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.
+- Results show averaged response times increases as concurrent client increases. Even though all servers adopted multi-thread to handle client requests, the server still needs time to process the request and launch a new thread. Too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the averaged time increases.  
+- Cache improve both query transaction's averaged response time by about 3 ~ 4ms, it fits what we found out in Lab2 that latency between EC2 machine is quite low (about 4ms). Cache only save the time of the latency between frontend server and catalog server  
+- Cache cannot improve the averaged response time of buy transaction. It makes sense since we only use cache in query transaction.  
 
-## 2.	Break down the end-to-end response time into component-specific response times by computing the per-tier response time for query and buy requests
-**Breakdown of Search Operation:**  (Flow: Client -> frontend -> catalog)  
-Avg response time of **Frontend Server** to **Search** request seen by Client (**Client <-> Frontend Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | -------------
-79.524ms | 79.636ms | 86.7036ms  | 94.7036ms  
+## 2.	Construct a simple experiment that issues orders or catalog updates (i.e., database writes) to invalidate the cache and maintain cache consistency. What is the overhead of cache consistency operations? What is the latency of a subsequent request if it sees a cache miss?  
+The overhead of cache consistency is the time used to invalidate cache + subsequent request if it sees a cache miss.  
+The averaged response time of invalidating cache = 0.27ms  (Note that this is the time to create a new thread that sending invalidation HTTP request since I use asynchronous request and don't need to wait for response)  
+The averaged response time subsequent request if it sees a cache miss = time to request catalog server + time to put new cache into cache server = 4.1ms  
+Total overhead = 4.1 + 0.27ms = 4.37ms  
+We need this overhead every time catalog server update its database. If write transaction is less than read, it is worthy to use cache for improving the read latency. However, if write transaction is much more than read operation, then the benfit of cache is not obvious since cache only improve query latency 3~4 ms.  
 
-
-Avg response time of **Catalog Server** to **Query by Topic** request seen by Frontend Server (**Frontend Server <-> Catalog Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
------------- | ------------- | ------------- | -------------
-4.6953ms | 4.6999ms | 4.8698ms  | 4.8789ms  
-
-
-PS: all response time is calculated from 1000 requests  
-
-From the result, we see:
-- Most of the time spent on the route between Client and Frontend server  
-- As concurrent client increases, the averaged response time also increases. The reason might be that too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the average time increases (Even though all servers adopted multi-thread to handle with client requests, the server still need time to process requests and launch a new thread).  
-- Averaged response time between the Catalog server and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers are deployed on AWS EC2 instances, the physical distance between the Catalog server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less.  
-
-<br />
-<br />
-<br />
-
-**Breakdown of Buy Operation:** (Flow: Client -> fronend -> order -> catalog)  
-Avg response time of **Frontend Server** to **Buy request** seen By Client (**Client <-> Frontend Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | -------------
-94.972ms | 94.424ms | 94.999ms  | 110.733ms  
-
-
-Avg response time of **Order Server** to **Buy request** seen by Frontend Server  (**Frontend Server <-> Order Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | -------------
-15.8532ms | 15.636ms | 15.9036ms  | 16.0036ms  
-
-Avg response time of **Catalog Server** to **Update** request** seen by Order Server  (**Order Server <-> Catalog Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | ------------
-4.623ms | 4.782ms | 4.9531ms  | 5.321ms  
-
-
-Avg response time of **Catalog Server** to **Query by Item Number** request seen by Order Server  (**Order Server <-> Catalog Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)  
------------- | ------------- | ------------- | -------------
-5.6154ms | 5.636ms | 5.64ms  | 6.309ms  
-
-PS: all response time is calculated from 1000 requests  
-
-From the result, we see:
-- Most of the time spent on the route between Client and Frontend server  
-- From the order server's perspective, an average response time of the "Update" operation is longer than "Query by Item Number". Also, as concurrent client increases, the operation time increases. The reason might be that we used a lock in the "update" operation but not in "Query by Item Number". As client increases, concurrent will compete for the lock and therefore increase the response time of the "Update" operation  
-- As concurrent client increases, the averaged response time also increases. The reason might be that too much request during a short time still makes the frontend and catalog server become a bottleneck and therefore the average time increases (Even though all servers adopted multi-thread to handle with client requests, the server still need time to process requests and launch a new thread).  
-- Averaged response time between Catalog server, Order Server, and Frontend server is far lower than the averaged response time between Client and Frontend Server. The reason might be that remote servers are deployed on AWS EC2 instances, the physical distance between the Catalog/Order server's host and Frontend server's host is shorter than the distance between Client and Frontend server. Since the distance between remote servers is shorter, the network transportation time is also less. 
-<br />
-<br />
-<br />
-
-**Breakdown of Lookup operation:**  (Flow: Client -> fronend -> catalog)  
-Avg response time of **Frontend Server** to **Lookup** request seen by Client  (**Client <-> Frontend Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
------------- | ------------- | ------------- | -------------
-76.293ms | 78.131ms | 86.386ms  | 92.9996ms  
-
-
-Avg response time of **Catalog Server** to **Query by Item Number** request seen by Frontend Server  (**Frontend Server <-> Catalog Server**)  
-Avg Response Time (1 Client) | Avg Response Time (3 Client) |  Avg Response Time (5 Client) |  Avg Response Time (9 Client)
------------- | ------------- | ------------- | -------------
-4.456ms | 4.3929ms | 4.4558ms  | 4.5089ms  
-
-PS: all response time is calculated from 1000 requests  
-
-- From the result, we see the same results as **Search** operation, please check the comment in **Search** operation section. Also, we observed "Search" request is slightly slower than the "Lookup" request but slightly faster than "buy" requests (As buy request cost more round-trip time between remote servers).  
+## 3. Construct an experiment to show your fault tolerance does the work as you expect. You should start your system with no failures and introduce a crash fault and show that the fault is detected and the other replica can mask this fault. Also be sure to show the process of recovery and resynchronization.  
+See test cases 5 ~ test case 8  
 
 <br />
 <br />
 <br /> 
 
 # Design Tradeoffs
-**Flask  V.S Django/Struts**  
-We must choose one of the web server framework to implement the servers, the pros of Django/Struts framework are:  
-1. It is a versatile framework and can be used for any website (social network, news site, content management, and more) with content in any format like HTML, XML, JSON, and more. It works in tandem with any client-side framework.  
-2. It is a secure framework and automatically manages standard security features like user account management, transaction management, cross-site request forgery, clickjacking, and more.  
-3. It is scalable and maintainable. Django follows design patterns and principles to reuse and maintain the code.  
+## Primary-Backup Replication Protocol V.S Local-Write Protocol
+We must choose one replication protocol for replication consistency. The pros of primary-backup protocol are:  
+1. Easier to implement and guarantee sequential consistency
+2. Save the network bandwidth to move object we want to update
 
-The cons of Django/Struts are:  
-1. Configuration is complicated than Flask  
-2. Lack of built-in development server and harder to debug  
+The cons of primary-backup protocol are:   
+1. Primary perform all updates and may become bottleneck  
+2. Block on write until all replicas are notified, potential to increase write latency  
 
-We finally choose to use Flask as our server implementation as it is easier to configure and have several built-in server templates. It supports multi-thread without any effort. As this project is small, we don't suffer from scalability and security problems.   
+I finally choose primary-backup replication. The reason is that this allows me to gurantee consistency and prevent race condition easier under multiple clients enviornments. However, the cost is that primary may become bottleneck and increasing on write latency.  
 
-**Pessimistic Concurrency Control (Lock) V.S Optimistic Concurrency Control (Transaction Validation Mechanism)**  
+
+## Round-Robin Load Balancing V.S Weighted Round-Robin Load Balancing
+To imeplemnt load-blancer, we must choose one load-balancing algorithms. The pros of round-robin are:  
+1.Very easy to implement
+The cons of round-robin algorithm are:  
+1.If each backend replication have different computing power and network capability, we cannot optimize the workload to each server based on replication capability  
+
+I finally chose round-robin since we use AWS EC2 as our backen replicated servers. We can trust the auto-scaling ability provided by AWS EC2 and assume each replicated server has about the same computing power and network bandwidth.  Since round-robin is fair under assumption of eqaul replicated server, we can easily implement the algorithms.  
+
+## Server-push Model V.S Client-pull Model
+To maintain the consistency between cache and catalog server, we need to choose one way of cache synchonization model. The pros of server-push model are:  
+1.Client don't need to keep polling the server, saving the polling effort of client and repsonding effor of server-side  
+
+The cons of server-push model are:  
+1.If there are many clients, server might become bottleneck since it needs to send large amount of messages to all clients  
+
+I finally chose Server-push model as it saves the polling effort for each client and  we didn't given how many clients each server may have.
+
+## Resync database status V.S Resync execuated transaction
+To implement falut tolerance, we need a way of resynchronization for crashed server. The pros of resync database status with other replicas are:  
+1.System design is quite simple  
+2.Don't worry about non-deterministic transaction executed on different server states as we directly current status of database  
+The cons of resync database status with other replicas are:  
+1.If database if large, the way cannot work as large amount of data can congest the network and may become a bottleneck operation
+2.If database if large, it costs a lot of time to recover
+
+In this lab, I chose to resync database status with other alive replicas when doing resynchronization. The reason is less worries on the consistency between replicas and make sysem design concise and simple. However, if the database beceome very large, we may need to implement check point/log and resync execuated transaction with other replicas. 
+
+
+## Pessimistic Concurrency Control (Lock) V.S Optimistic Concurrency Control (Transaction Validation Mechanism)  
 We need concurrency control to make sure that transaction is consistent and atomic and prevent race condition happen. The pros of using Pessimistic Concurrency Control (Lock) is:    
 1. Don't need to worry about transaction starvation  
 2. Don't need to re-run the transaction and implement complicated transaction check mechanism  
@@ -600,37 +573,6 @@ The cons of Pessimistic Concurrency Control (Lock) is:
 
 We finally chose Pessimistic Concurrency Control (Lock) since race conditions happen too frequently when concurrent clients> 5. By doing so, we skip starvation and re-run problems. It also makes the design simpler. Besides, since only the catalog server uses the lock, it is easy to skip the deadlock problem.  
 
-**Thread Pool V.S Dynamically Creating New Thread**  
-To handle client HTTP requests, we can choose either to launch a new thread every time or use the existing thread pool to allocate thread to message processing task. The pros of Thread Pool is:  
-1.Shorter response time of client request since we don't need to create new thread dynamically  
-
-The cons are:  
-1. Higher complexity of system since we need to handle the creation and recycle of threads  
-2. Higher memory usage since we must maintain a certain amount of thread  
-3. Hard to debug  
-
-We finally choose Dynamically Creating New Thread since the HTTP thread doesn't have too many data attributes and creating is fast. Given that performance doesn't have too much difference and we want to simplify our design, we can dynamically creating a new thread to handle HTTP client requests. It also helps save memory usage.    
-
-**Dynamic Creation of EC2 Instances V.S Hot Stand-By EC2 Instances**  
-When launching multiple servers for server deployment, we must choose between whether to dynamically creating new instances or deploy peers on hot standby servers. The pros of dynamic creation of EC2 Instances are:  
-1. Lower cost of AWS EC2 instance (EC2s are billed by running time of instances)  
-
-The cons of a hot stand-by EC2 instance is:  
-1. Longer deployment time since we need to wait for instances to be created  
-2. Need to re-migrate and compile code every time we update our code  
-
-We finally chose Dynamic Creation of EC2 Instances since the cost is significant if we maintain a lot of running EC2 instances. We write a script to quickly creating a security group and instances when deploying.  
-
-
-**Open All TCP Port between Different Remote Server V.S Open only certain range of TCP Port between Different Remote Server**  
-To allow HTTP access permission between different servers so that servers can communicate with each other. We attached the Amazon security group to each Amazon EC2 instance to implement this permission control. The pros of opening all TCP Port between Different Remote Serve is:  
-1. Don't need to worry about port range change (Ex. Add/Deletion new port dynamically) as we may want to add a new port to a peer  
-2. Easy to configure  
-
-The cons are:  
-1.  Impaired security since if one of the servers is malicious, it can exploit and attack the opened port  
-
-We finally chose to open only a certain range of TCP ports between Different Remote Server. We use a script to automatically create a security group to save the effort of changing the port in the future.
 
 
 # How to Run It
@@ -639,6 +581,7 @@ See [README.md #How to run?](https://github.com/Chih-Che-Fang/MyBookStore/blob/m
 
 # Possible Improvements and Extensions
 
-1. We didn't implement the fault tolerance. However, since the catalog & order server stored all executed log and initialization information, we can, in the future, implement a mechanism easily to recover books' status after a machine recovered from a fail  
-2. Currently we only have 1 machine for each type of server, but as the client increases, the server has a slower response time. Therefore, in the future, we can add more replicated servers for each type of server and add a load balancer to handle concurrently client requests. In this way, we can reduce averaged response time and scale this bookstore to a large number of customers.
-3. We are using the thread per request model currently. Therefore, we could optimize averaged response latency time by using thread pool since each request doesn't need to wait for the launch time of a thread  
+1. Currrently we only have one frontend server and cache server, as the customer clients increase, the frontend may become bottleneck and single point of failure, we can adopt replication to frontend and cache server too  
+2. Primary-backup protocol may cause primary server a bottleneck as number of customer increases. Besides, it only support sequential consistency. We can adopt Paxos/RAFT consensus mechansim to achieve linearizabile consistency, whcih is stronger than sequential model  
+3. In this lab, I chose to resync database status with other alive replicas when doing resynchronization. The reason is less worries on the consistency between replicas and make sysem design concise and simple. However, if the database beceome very large, we may need to implement check point/log and resync execuated transaction with other replicas. 
+4. We are using the thread per request model currently. Therefore, we could optimize averaged response latency time by using thread pool since each request doesn't need to wait for the launch time of a thread  
