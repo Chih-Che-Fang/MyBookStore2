@@ -7,12 +7,12 @@ class HeartBeater(threading.Thread):
 	#Constructor of HeartBeater
 	def __init__(self, server_type, server_id, config):
 		threading.Thread.__init__(self)
-		self.server_type = server_type
-		self.server_id = server_id
+		self.server_type = server_type #server type
+		self.server_id = server_id #id of the server
 		#self.config = config
-		self.frontend_addr = config.getAddress('frontend')
-		self.catalog_server_addr = config.server_addr['catalog']
-		self.stop_listener = False
+		self.frontend_addr = config.getAddress('frontend') #frontend server address
+		self.catalog_server_addr = config.server_addr['catalog'] #catalog server address
+		self.stop_listener = False #stop signal of the heart beater, used for server crashed simulation
 
 	#Stop the listener
 	#input: None

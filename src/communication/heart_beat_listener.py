@@ -9,10 +9,10 @@ class HeartBeatListener(threading.Thread):
 		threading.Thread.__init__(self)
 		
 		cur_time = time.time()
-		self.heart_beat_timestamp = {'catalog': [cur_time, cur_time], 'order': [cur_time, cur_time]}
-		self.config = config
-		self.started = False
-		self.id = id
+		self.heart_beat_timestamp = {'catalog': [cur_time, cur_time], 'order': [cur_time, cur_time]} #last hearbeat timestamp for each server
+		self.config = config #global address ref
+		self.started = False #record whether the listener start or not
+		self.id = id #listener id
 
 	#Record heart beat timestamp
 	#input:

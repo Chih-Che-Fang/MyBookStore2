@@ -12,6 +12,7 @@ class LoadBlancer():
 		self.server_rr = {}  #Round-robin value 
 		self.server_health = config.server_health #Record whether the server is alive
 		
+		#Init round-robin algorithm value for each type of server
 		for server_type in self.server_addr:
 			self.server_rr[server_type] = 0
 

@@ -135,6 +135,8 @@ def resync():
 	#Get input parameter from HTTP request
 	server_id = int(request.args.get('server_id'))
 	config.update_server_health('catalog', server_id, True)
+
+	#Log execuated transaction
 	logger.log('resync,{}'.format(server_id))
 	return jsonify(Book.get_book_list(books))
 
@@ -184,7 +186,7 @@ def heart_beat():
 @app.route('/shutdown', methods=['GET'])
 def shutdown():
 	hb.stop()
-	logger.log('shutdown')
+	logger.log('shutdown') #Log execuated transaction
 	return jsonify({'result': 'Succeed'})
 
 
@@ -201,6 +203,7 @@ def recover():
 	hb.start()
 	books = rp.recover() #recover from a failed state
 	
+	#Log execuated transaction
 	print('catalog {} recovered from crash'.format(id))
 	logger.log('recover')
 	return jsonify({'result': 'Succeed'})

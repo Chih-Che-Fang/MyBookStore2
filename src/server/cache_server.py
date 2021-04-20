@@ -49,6 +49,7 @@ def put_search_cache():
 	print('Cache Server: Put search({}) result into search cache'.format(topic))
 	search_cache[topic] = res
 	
+	#Log execuated transaction
 	logger.log('put_search_cache,{}'.format(topic))
 	return jsonify({'result':'success'})
 
@@ -62,6 +63,8 @@ def put_lookup_cache():
 	
 	lookup_cache[book.item_number] = book
 	print('Cache Server: Put result of lookup({}) into lookup cache'.format(book.item_number))
+
+	#Log execuated transaction
 	logger.log('put_lookup_cache,{}'.format(book.item_number))
 	return jsonify({'result':'success'})
 	

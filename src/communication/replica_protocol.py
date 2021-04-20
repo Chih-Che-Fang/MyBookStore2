@@ -12,7 +12,7 @@ class ReplicaProtocol():
 		#self.config = config
 		self.id = id #server id
 		self.replica_addr = config.server_addr[server_type] #address of all replica
-		self.cache_addr = config.getAddress('cache')
+		self.cache_addr = config.getAddress('cache') #cache server address
 		self.server_health = config.server_health[server_type] #Record whether the server is alive
 		self.invalidate_cache_monitor = Monitor('Catalog Server', 'invalidate_cache') #Performance monitors to trace average response time
 

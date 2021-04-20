@@ -15,6 +15,7 @@ class Request(threading.Thread):
 			self.res = requests.get(self.req).json()
 		except:
 			print('Request {} Failed because remote server crahsed'.format(self.req))
+	#wait the thread to stop
 	def join(self, *args):
 		Thread.join(self, *args)
 		return self.res
