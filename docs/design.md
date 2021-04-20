@@ -459,7 +459,7 @@ bought book 4
 bought book 4  
 bought book 4  
 
-**Result:** Pass, Catalog Server 0 is the primary server and crashed by issuing shutdown request. Catalog server 1 correctly take over the primary server's job. The clients can still correctly perform buy transaction even if catalog server 0 crashed. Cache server is correctly invalidated after buy transaction.  
+**Result:** Pass, Catalog Server 0 is the primary server and crashed by issuing shutdown request. Catalog server 1 correctly take over the primary server's job and is able to update the database normmally. The clients can still correctly perform buy transaction even if catalog server 0 crashed. Cache server is correctly invalidated after buy transaction. Note that we can know from the log that frontend server has detected the crash since no following request is sent to catalog server 0 under round-robin load-balancing algorithms. Also, the catalog server 1 is able to perform update, whcih means it know the old primary server has crashed and now itself is the new primary and isable to perform update.
 
 
 ### Test6 Output: (Verify Fault tolerance) Primary catalog server can correctly recover from a fail and resync with replicas  
@@ -480,7 +480,7 @@ query_by_item,2
 resync,0  
 query_by_item,2  
 
-**Result:** Pass, Catalog Server 0 is crashed and then recovered by issuing the recover request. It correctly performed resync transaction with catalog server 1 and has the same bookstore data with catalog server 1. We checked the stock by querying the two server the information of book 4, which is bought 3 times during the time the catalog server 0 crashed.
+**Result:** Pass, Catalog Server 0 is crashed and then recovered by issuing the recover request. It correctly performed resync transaction with catalog server 1 and has the same bookstore database with catalog server 1. We checked the stock by querying the two server the information of book 4, which is bought 3 times during the time the catalog server 0 crashed. From the log, we see the same stock infromation of book 4 and therefore know the crashed server successfully resync with another replica.  
 
 ### Test7 Output:** (Verify Fault tolerance) Same with test5, but the crashed server is a replicated catalog server 
 Same logic as test 5  
@@ -516,8 +516,9 @@ Total overhead = 4.1 + 0.27ms = 4.37ms
 We need this overhead every time catalog server update its database. If write transaction is less than read, it is worthy to use cache for improving the read latency. However, if write transaction is much more than read operation, then the benfit of cache is not obvious since cache only improve query latency 3~4 ms.  
 
 ## 3. Construct an experiment to show your fault tolerance does the work as you expect. You should start your system with no failures and introduce a crash fault and show that the fault is detected and the other replica can mask this fault. Also be sure to show the process of recovery and resynchronization.  
-See test cases 5 ~ test case 8  
-
+See [How it works#Fault Tolerance Part](https://github.com/Chih-Che-Fang/MyBookStore2/blob/main/docs/design.md#test6-output-verify-fault-tolerance-primary-catalog-server-can-correctly-recover-from-a-fail-and-resync-with-replicas) for how we implement fault tolerance mechanism and how we simulate a crashed server that later recovered.  
+See [test case 5/test case 7](https://github.com/Chih-Che-Fang/MyBookStore2/blob/main/docs/design.md#test5-output-verify-fault-tolerance-after-primary-catalog-server-crashed-frontend-server-can-still-correctly-process-update-and-query-requests-check-alive-replica-will-take-over-the-primary-job-correctly) for the  experiemnts of fault detection and replica fault mask.  
+See [test case 6/test case 8](https://github.com/Chih-Che-Fang/MyBookStore2/blob/main/docs/design.md#test6-output-verify-fault-tolerance-primary-catalog-server-can-correctly-recover-from-a-fail-and-resync-with-replicas) for experiments of recovery and resynchronization.  
 <br />
 <br />
 <br /> 
