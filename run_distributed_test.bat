@@ -71,7 +71,7 @@ for /f "tokens=*" %%a in (ips.txt) do (
 	set /a count += 1
 )
 
-timeout 60
+timeout 75
 
 REM Get docker entry point script
 xcopy /y .\docker_scripts\run_client.sh .\run.sh
@@ -115,17 +115,17 @@ for /f "tokens=*" %%a in (ips.txt) do (
 )
 docker cp mybookstore32144321:/usr/src/MyBookStore/output/client_log .\output
 
-REM REM release AWS resources
-REM aws ec2 delete-security-group --group-name MyBookStore32144321
-REM for /f "tokens=*" %%a in (ids.txt) do (
-REM   aws ec2 terminate-instances --instance-ids %%a
-REM )
-REM aws ec2 delete-key-pair --key-name 677kp32144321
-REM 
-REM REM Delete temporary files
-REM del 677kp32144321.pem
-REM del instance.json
-REM del ids.txt
-REM del ips.txt
+REM release AWS resources
+aws ec2 delete-security-group --group-name MyBookStore32144321
+for /f "tokens=*" %%a in (ids.txt) do (
+  aws ec2 terminate-instances --instance-ids %%a
+)
+aws ec2 delete-key-pair --key-name 677kp32144321
+
+REM Delete temporary files
+del 677kp32144321.pem
+del instance.json
+del ids.txt
+del ips.txt
 
 pause
