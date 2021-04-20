@@ -1,0 +1,81 @@
+Request to frontend server with IP address: 127.0.0.1:8000
+Client0: Send request http://127.0.0.1:8000/search?topic=distributed%20systems
+Client0: Get response {'result': [{'item_number': '1', 'title': 'How to get a good grade in 677 in 20 minutes a day'}, {'item_number': '2', 'title': 'RPCs for Dummies'}]}
+Client0: Send request http://127.0.0.1:8000/search?topic=graduate%20school
+Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art of Surviving Graduate School'}, {'item_number': '4', 'title': 'Cooking for the Impatient Graduate Student'}, {'item_number': '5', 'title': 'How to finish Project 3 on time'}, {'item_number': '6', 'title': 'Why theory classes are so hard'}]}
+Client0: Send request http://127.0.0.1:8000/search?topic=distributed%20systems
+Client0: Get response {'result': [{'item_number': '1', 'title': 'How to get a good grade in 677 in 20 minutes a day'}, {'item_number': '2', 'title': 'RPCs for Dummies'}]}
+Client0: Send request http://127.0.0.1:8000/search?topic=graduate%20school
+Client0: Get response {'result': [{'item_number': '3', 'title': 'Xen and the Art of Surviving Graduate School'}, {'item_number': '4', 'title': 'Cooking for the Impatient Graduate Student'}, {'item_number': '5', 'title': 'How to finish Project 3 on time'}, {'item_number': '6', 'title': 'Why theory classes are so hard'}]}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=1
+Client0: Get response {'result': {'cost': '10', 'item_number': '1', 'stock': 3, 'title': 'How to get a good grade in 677 in 20 minutes a day', 'type': 'distributed systems'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=1
+Client0: Get response {'result': {'cost': '10', 'item_number': '1', 'stock': 3, 'title': 'How to get a good grade in 677 in 20 minutes a day', 'type': 'distributed systems'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=2
+Client0: Get response {'result': {'cost': '20', 'item_number': '2', 'stock': 3, 'title': 'RPCs for Dummies', 'type': 'distributed systems'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=2
+Client0: Get response {'result': {'cost': '20', 'item_number': '2', 'stock': 3, 'title': 'RPCs for Dummies', 'type': 'distributed systems'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=3
+Client0: Get response {'result': {'cost': '5', 'item_number': '3', 'stock': 3, 'title': 'Xen and the Art of Surviving Graduate School', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=3
+Client0: Get response {'result': {'cost': '5', 'item_number': '3', 'stock': 3, 'title': 'Xen and the Art of Surviving Graduate School', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=4
+Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 6, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=4
+Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 6, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=5
+Client0: Get response {'result': {'cost': '15', 'item_number': '5', 'stock': 3, 'title': 'How to finish Project 3 on time', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=5
+Client0: Get response {'result': {'cost': '15', 'item_number': '5', 'stock': 3, 'title': 'How to finish Project 3 on time', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=6
+Client0: Get response {'result': {'cost': '15', 'item_number': '6', 'stock': 3, 'title': 'Why theory classes are so hard', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=6
+Client0: Get response {'result': {'cost': '15', 'item_number': '6', 'stock': 3, 'title': 'Why theory classes are so hard', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=7
+Client0: Get response {'result': {'cost': '15', 'item_number': '7', 'stock': 3, 'title': 'Spring in the Pioneer Valley', 'type': 'travel'}}
+Client0: Send request http://127.0.0.1:8000/lookup?item_number=7
+Client0: Get response {'result': {'cost': '15', 'item_number': '7', 'stock': 3, 'title': 'Spring in the Pioneer Valley', 'type': 'travel'}}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=1
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=1
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=1
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=1
+Client0: Get response {'result': 'Failed'}
+Client1: Send request http://127.0.0.1:8000/buy?item_number=2
+Client2: Send request http://127.0.0.1:8000/buy?item_number=2
+Client3: Send request http://127.0.0.1:8000/buy?item_number=2
+Client4: Send request http://127.0.0.1:8000/buy?item_number=2
+Client2: Get response {'result': 'Success'}
+Client4: Get response {'result': 'Success'}
+Client1: Get response {'result': 'Success'}
+Client3: Get response {'result': 'Failed'}
+Client0: Send request http://127.0.0.1:8001/shutdown
+Client0: Get response {'result': 'Succeed'}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=4
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=4
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=4
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8001/recover
+Client0: Get response {'result': 'Succeed'}
+Client0: Send request http://127.0.0.1:8002/query_by_item?item_number=4
+Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 3, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8001/query_by_item?item_number=4
+Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 3, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8002/shutdown
+Client0: Get response {'result': 'Succeed'}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=4
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=4
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8000/buy?item_number=4
+Client0: Get response {'result': 'Success'}
+Client0: Send request http://127.0.0.1:8002/recover
+Client0: Get response {'result': 'Succeed'}
+Client0: Send request http://127.0.0.1:8001/query_by_item?item_number=4
+Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 0, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}
+Client0: Send request http://127.0.0.1:8002/query_by_item?item_number=4
+Client0: Get response {'result': {'cost': '15', 'item_number': '4', 'stock': 0, 'title': 'Cooking for the Impatient Graduate Student', 'type': 'graduate school'}}
