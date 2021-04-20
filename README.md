@@ -38,7 +38,7 @@ Client4: Get response  {'result': 'Failed'}
 
 Fianlly, the distributed servers will output all server logs to "output" folder  
 
-4.To verify the server operation's correctness and executed HTTP request, check the log file **cache_log**, **"catalog0_log/catalog1_log"** , and **"order0_log/order1_log"** under **"output"** folder. To verify client's HTTP requests & response log, check the log file **client_log**   
+4.To verify the server operation's correctness and executed HTTP request, check the log file **cache_log**, **"catalog0_log/catalog1_log"** , and **"order0_log/order1_log"** under **"output"** folder. To verify client's HTTP requests & response log for each test cases, check the log file **client_log**   
 
 
 # Directory/Files Description
