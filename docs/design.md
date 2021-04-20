@@ -20,8 +20,8 @@ Authors: Chih-Che Fang
 
 ### Communication Package
 - **LoadBalancer:** A class used to direct HTTP request to replicated server evenly  
-- **HeartBeater:** A class used to send hear beat to targeted server itermittenly  
-- **HeartBeaterListener:** A listener used to process and monitor hear beat messages from other servers  
+- **HeartBeater:** A class used to send beat to targeted server itermittenly  
+- **HeartBeaterListener:** A listener used to process and monitor heart beat messages from other servers  
 - **ReplicationProtocol:** A class used to implement replication consistency and fault tolerance  
 - **Request:** A class used to perfrom secured & multi-threaded HTTP request  
 
@@ -41,7 +41,7 @@ Authors: Chih-Che Fang
 - **search(topic)**: Allows the user to specify a topic and returns all entries belonging to that category (a title and an item number are displayed for each match).  
 - **lookup(item_number)**: Allows an item number to be specified and returns details such as number of items in stock and cost  
 - **buy(item_number)**: Allows client to buy a book with the item number  
-- **hear_beat(server_type, serer_idx):** Process heart beat messages from backen servers. This API allows the frotnend server to monitor the health of backend servers  
+- **heart_beat(server_type, serer_idx):** Process heart beat messages from backen servers. This API allows the frotnend server to monitor the health of backend servers  
 
 
 ### Catalog Server 
@@ -50,7 +50,7 @@ Authors: Chih-Che Fang
 - **update(item_number, cost, stock_update)**: Allows client to update cost or update the stock of book  
 - **shutdown():** The API will shut down the catalog server, simulating a server crash fault  
 - **recover():** The API will shut down the catalog server, simulating a server crash fault  
-- **hear_beat(server_type, serer_idx):** Process heart beat messages from backen servers. This API allows the frotnend server to monitor the health of backend servers  
+- **heart_beat(server_type, serer_idx):** Process heart beat messages from backen servers. This API allows the frotnend server to monitor the health of backend servers  
 - **resync(server_idx):** This API process resync message from a just recovered server. This API allows crashed server to sync in-memory book database with replicas.
 - **internal_update(book, cost, stock):** Process inernal update requests from replicas. This API is part of replication protocaol and used for syncronization mechansim between replicas 
 
@@ -120,7 +120,7 @@ Since each replica has global knowledge about the address/port and health status
 ## Fault Tolerance
 ### Fault Detection - Heart-Beat Mechanism
 ![Heartbeat diagram](./Heartbeat.PNG "Heartbeat")  
-We let replicas send hear beat message to frontend server and other replicas every second. Each server also set a heart beat listener to monitor the health of other replicas every second. Once a listener dosen't receive a heart beat from a certain server, the listener will mark that server as "died"   
+We let replicas send heart beat message to frontend server and other replicas every second. Each server also set a heart beat listener to monitor the health of other replicas every second. Once a listener dosen't receive a heart beat from a certain server, the listener will mark that server as "died"   
 
 
 ### Primary Takeover
@@ -133,7 +133,7 @@ After the crashed server recovered from a faliure, it will:
 2.Replica re-slect primary server  
 3.Receive bookstore database information repsonse and update its state  
 4.Re-select primary server  
-5.Send hear beat message to frontend server to notify that the server is recovered again  
+5.Send heart beat message to frontend server to notify that the server is recovered again  
 
 ### Simulation for Server Shutdown and Recover
 I implement two REST API in catalog server for simulating server crash & recover:  
@@ -562,6 +562,15 @@ The cons of resync database status with other replicas are:
 
 In this lab, I chose to resync database status with other alive replicas when doing resynchronization. The reason is less worries on the consistency between replicas and make sysem design concise and simple. However, if the database beceome very large, we may need to implement check point/log and resync execuated transaction with other replicas. 
 
+## High Heart Beat Frequency V.S Low Heart Beat Frequency  
+To implement falut tolerance, we need a heart beat mechansim with certain frequency. The pros of high heart beat frequency is:  
+1.Other server can quickly detect a crashed server    
+The cons of high heart beat frequency are:  
+1.Congested the network with heart beat message  
+2.Cost server computing power to process heart messages  
+3.May increase the rate of false positive: A server might just has slower response  
+
+it is hard to determin a suitable heart beat frequency for all servers. Our bottomline is that replicas must detect the crashed server fast enough so that it will not cause any consistency problem. Finally, with experiment, we set 1/per second as our heart beat frequecy.  
 
 ## Pessimistic Concurrency Control (Lock) V.S Optimistic Concurrency Control (Transaction Validation Mechanism)  
 We need concurrency control to make sure that transaction is consistent and atomic and prevent race condition happen. The pros of using Pessimistic Concurrency Control (Lock) is:    
