@@ -517,8 +517,8 @@ We need this overhead every time catalog server update its database. If write tr
 
 ## 3. Construct an experiment to show your fault tolerance does the work as you expect. You should start your system with no failures and introduce a crash fault and show that the fault is detected and the other replica can mask this fault. Also be sure to show the process of recovery and resynchronization.  
 See [How it works#Fault Tolerance Part](https://github.com/Chih-Che-Fang/MyBookStore2/blob/main/docs/design.md#test6-output-verify-fault-tolerance-primary-catalog-server-can-correctly-recover-from-a-fail-and-resync-with-replicas) for how we implement fault tolerance mechanism and how we simulate a crashed server that later recovered.  
-See [test case 5/test case 7](https://github.com/Chih-Che-Fang/MyBookStore2/blob/main/docs/design.md#test5-output-verify-fault-tolerance-after-primary-catalog-server-crashed-frontend-server-can-still-correctly-process-update-and-query-requests-check-alive-replica-will-take-over-the-primary-job-correctly) for the  experiemnts of fault detection and replica fault mask.  
-See [test case 6/test case 8](https://github.com/Chih-Che-Fang/MyBookStore2/blob/main/docs/design.md#test6-output-verify-fault-tolerance-primary-catalog-server-can-correctly-recover-from-a-fail-and-resync-with-replicas) for experiments of recovery and resynchronization.  
+See [test case 5/test case 7](https://github.com/Chih-Che-Fang/MyBookStore2/blob/main/docs/design.md#test5-output-verify-fault-tolerance-after-primary-catalog-server-crashed-frontend-server-can-still-correctly-process-update-and-query-requests-check-alive-replica-will-take-over-the-primary-job-correctly) for the experiemnts outcome of fault detection and replica fault mask.  
+See [test case 6/test case 8](https://github.com/Chih-Che-Fang/MyBookStore2/blob/main/docs/design.md#test6-output-verify-fault-tolerance-primary-catalog-server-can-correctly-recover-from-a-fail-and-resync-with-replicas) for experiments outcome of recovery and resynchronization.  
 <br />
 <br />
 <br /> 
