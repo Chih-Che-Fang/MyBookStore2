@@ -525,6 +525,7 @@ See test cases 5 ~ test case 8
 ## Primary-Backup Replication Protocol V.S Local-Write Protocol
 We must choose one replication protocol for replication consistency. The pros of primary-backup protocol are:  
 1. Easier to implement and guarantee sequential consistency
+2. Save the network bandwidth to move object we want to update
 
 The cons of primary-backup protocol are:   
 1. Primary perform all updates and may become bottleneck  
@@ -541,29 +542,27 @@ The cons of round-robin algorithm are:
 
 I finally chose round-robin since we use AWS EC2 as our backen replicated servers. We can trust the auto-scaling ability provided by AWS EC2 and assume each replicated server has about the same computing power and network bandwidth.  Since round-robin is fair under assumption of eqaul replicated server, we can easily implement the algorithms.  
 
-## Server-push V.S Client-pull  
-To maintain the consistency between cache and catalog server, we need to choose one way of synchonization model. The pros of server-push model are:  
-1.Client don't need to keep polling the server, saving the effort of client  
+## Server-push Model V.S Client-pull Model
+To maintain the consistency between cache and catalog server, we need to choose one way of cache synchonization model. The pros of server-push model are:  
+1.Client don't need to keep polling the server, saving the polling effort of client and repsonding effor of server-side  
 
 The cons of server-push model are:  
-1.If there are many clients, server might become bottleneck since it needs to send messages to all clients  
+1.If there are many clients, server might become bottleneck since it needs to send large amount of messages to all clients  
 
-I finally chose Server-push model since
+I finally chose Server-push model as it saves the polling effort for each client and  we didn't given how many clients each server may have.
+
+## Resync database status V.S Resync execuated transaction
+To implement falut tolerance, we need a way of resynchronization for crashed server. The pros of resync database status with other replicas are:  
+1.System design is quite simple  
+2.Don't worry about non-deterministic transaction executed on different server states as we directly current status of database  
+The cons of resync database status with other replicas are:  
+1.If database if large, the way cannot work as large amount of data can congest the network and may become a bottleneck operation
+2.If database if large, it costs a lot of time to recover
+
+In this lab, I chose to resync database status with other alive replicas when doing resynchronization. The reason is less worries on the consistency between replicas and make sysem design concise and simple. However, if the database beceome very large, we may need to implement check point/log and resync execuated transaction with other replicas. 
 
 
-**Flask  V.S Django/Struts**  
-We must choose one of the web server framework to implement the servers, the pros of Django/Struts framework are:  
-1. It is a versatile framework and can be used for any website (social network, news site, content management, and more) with content in any format like HTML, XML, JSON, and more. It works in tandem with any client-side framework.  
-2. It is a secure framework and automatically manages standard security features like user account management, transaction management, cross-site request forgery, clickjacking, and more.  
-3. It is scalable and maintainable. Django follows design patterns and principles to reuse and maintain the code.  
-
-The cons of Django/Struts are:  
-1. Configuration is complicated than Flask  
-2. Lack of built-in development server and harder to debug  
-
-We finally choose to use Flask as our server implementation as it is easier to configure and have several built-in server templates. It supports multi-thread without any effort. As this project is small, we don't suffer from scalability and security problems.   
-
-**Pessimistic Concurrency Control (Lock) V.S Optimistic Concurrency Control (Transaction Validation Mechanism)**  
+## Pessimistic Concurrency Control (Lock) V.S Optimistic Concurrency Control (Transaction Validation Mechanism)  
 We need concurrency control to make sure that transaction is consistent and atomic and prevent race condition happen. The pros of using Pessimistic Concurrency Control (Lock) is:    
 1. Don't need to worry about transaction starvation  
 2. Don't need to re-run the transaction and implement complicated transaction check mechanism  
@@ -582,6 +581,7 @@ See [README.md #How to run?](https://github.com/Chih-Che-Fang/MyBookStore/blob/m
 
 # Possible Improvements and Extensions
 
-1. We didn't implement the fault tolerance. However, since the catalog & order server stored all executed log and initialization information, we can, in the future, implement a mechanism easily to recover books' status after a machine recovered from a fail  
-2. Currently we only have 1 machine for each type of server, but as the client increases, the server has a slower response time. Therefore, in the future, we can add more replicated servers for each type of server and add a load balancer to handle concurrently client requests. In this way, we can reduce averaged response time and scale this bookstore to a large number of customers.
-3. We are using the thread per request model currently. Therefore, we could optimize averaged response latency time by using thread pool since each request doesn't need to wait for the launch time of a thread  
+1. Currrently we only have one frontend server and cache server, as the customer clients increase, the frontend may become bottleneck and single point of failure, we can adopt replication to frontend and cache server too  
+2. Primary-backup protocol may cause primary server a bottleneck as number of customer increases. Besides, it only support sequential consistency. We can adopt Paxos/RAFT consensus mechansim to achieve linearizabile consistency, whcih is stronger than sequential model  
+3. In this lab, I chose to resync database status with other alive replicas when doing resynchronization. The reason is less worries on the consistency between replicas and make sysem design concise and simple. However, if the database beceome very large, we may need to implement check point/log and resync execuated transaction with other replicas. 
+4. We are using the thread per request model currently. Therefore, we could optimize averaged response latency time by using thread pool since each request doesn't need to wait for the launch time of a thread  
